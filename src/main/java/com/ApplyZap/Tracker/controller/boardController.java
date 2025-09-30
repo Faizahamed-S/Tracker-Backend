@@ -32,4 +32,8 @@ public class boardController {
             return new ResponseEntity<>(application,HttpStatus.OK);
         }
     }
+    @PostMapping("/application")
+    public ResponseEntity<Application> createApplication(@RequestBody Application application){
+        return new ResponseEntity<>(boardService.createApplication(application),HttpStatus.CREATED);
+    }
 }

@@ -21,4 +21,8 @@ public class boardService {
     public Application getApplicationById(Long id) {
         return repo.findById(id).orElse(new Application());
     }
+
+    public Application createApplication(Application application) {
+        return repo.save(application);
+    }
 }
