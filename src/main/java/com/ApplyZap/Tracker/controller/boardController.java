@@ -64,4 +64,6 @@ public class boardController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping("/applications/{@}")
 }
