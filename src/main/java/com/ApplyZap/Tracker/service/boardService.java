@@ -26,7 +26,22 @@ public class boardService {
         return repo.save(application);
     }
 
-    public Application updateApplication(Application application) {
-        return repo.save(application);
+    public Application updateApplication(Application existing, Application newUpdate) {
+        if(newUpdate.getCompanyName()!=null)
+            existing.setCompanyName(newUpdate.getCompanyName());
+        if(newUpdate.getRoleName()!=null)
+            existing.setRoleName(newUpdate.getRoleName());
+        if(new Date().getTime()-existing.getDateOfApplication().getTime()<60*1000)
+            existing.setDateOfApplication(newUpdate.getDateOfApplication());
+        if(newUpdate.getJobLink()!=null)
+            existing.setJobLink(newUpdate.getJobLink());
+        if(newUpdate.getJobDescription()!=null)
+            existing.setJobDescription(newUpdate.getJobDescription());
+        if(newUpdate.isReferral())
+            existing.setReferral(true);
+        if(newUpdate.isTailored())
+            existing.setTailored(true);
+
+        return repo.save(existing);
     }
 }

@@ -38,9 +38,16 @@ public class boardController {
         return new ResponseEntity<>(boardService.createApplication(application),HttpStatus.CREATED);
     }
 
-//    @PutMapping("/application/{id}")
-//    public ResponseEntity<Application> updateApplication(@PathVariable Long id, @RequestBody Application application)
-//    {
-//
-//    }
+    @PutMapping("/application/{id}")
+    public ResponseEntity<Application> updateApplication(@PathVariable Long id, @RequestBody Application application)
+    {
+        Optional<Application> existing= boardService.getApplicationById(id);
+        if(existing.isPresent()){
+            Application updated=boardService.updateApplication(existing.get(), application);
+            return new ResponseEntity<>(updated,HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }
