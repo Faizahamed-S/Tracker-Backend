@@ -18,11 +18,15 @@ public class boardService {
         return repo.findAll();
     }
 
-    public Application getApplicationById(Long id) {
-        return repo.findById(id).orElse(new Application());
+    public Optional<Application> getApplicationById(Long id) {
+        return repo.findById(id);
     }
 
     public Application createApplication(Application application) {
+        return repo.save(application);
+    }
+
+    public Application updateApplication(Application application) {
         return repo.save(application);
     }
 }

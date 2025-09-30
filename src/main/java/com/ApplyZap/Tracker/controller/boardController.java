@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.controller;
 
+import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +25,22 @@ public class boardController {
 
     @GetMapping("/applications/{id}")
     public ResponseEntity<Application> getApplicationById(@PathVariable Long id){
-        Application application = boardService.getApplicationById(id);
-        if(application == null){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        else{
-            return new ResponseEntity<>(application,HttpStatus.OK);
-        }
+            Optional<Application> application = boardService.getApplicationById(id);
+            if(application.isPresent()){
+            return new ResponseEntity<>(application.get(),HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
     }
     @PostMapping("/application")
     public ResponseEntity<Application> createApplication(@RequestBody Application application){
         return new ResponseEntity<>(boardService.createApplication(application),HttpStatus.CREATED);
     }
+
+//    @PutMapping("/application/{id}")
+//    public ResponseEntity<Application> updateApplication(@PathVariable Long id, @RequestBody Application application)
+//    {
+//
+//    }
 }
