@@ -50,4 +50,18 @@ public class boardController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @DeleteMapping("/application/{id}")
+    public ResponseEntity<Application> deleteApplication(@PathVariable Long id){
+        Optional<Application> application = boardService.getApplicationById(id);
+        if(application.isPresent())
+        {
+            boardService.deleteApplication(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else
+        {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

@@ -44,4 +44,8 @@ public class boardService {
 
         return repo.save(existing);
     }
+
+    public void deleteApplication(Long id) {
+       repo.deleteById(id);
+    }
 }
