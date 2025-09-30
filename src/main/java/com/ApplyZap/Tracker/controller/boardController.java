@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.controller;
 
+import com.ApplyZap.Tracker.model.ApplicationStatus;
 import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -65,5 +66,10 @@ public class boardController {
         }
     }
 
-    @GetMapping("/applications/{@}")
+    @GetMapping("/applications/status/{status}")
+    public ResponseEntity<List<Application>> getApplicationByStatus(@PathVariable ApplicationStatus status)
+    {
+        return new ResponseEntity<>(boardService.getApplicationByStatus(status),HttpStatus.OK);
+    }
+
 }

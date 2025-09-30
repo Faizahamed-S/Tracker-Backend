@@ -1,6 +1,7 @@
 package com.ApplyZap.Tracker.service;
 
 import com.ApplyZap.Tracker.model.Application;
+import com.ApplyZap.Tracker.model.ApplicationStatus;
 import com.ApplyZap.Tracker.repository.boardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,5 +48,9 @@ public class boardService {
 
     public void deleteApplication(Long id) {
        repo.deleteById(id);
+    }
+
+    public List<Application> getApplicationByStatus(ApplicationStatus status) {
+        return repo.findByStatus(status);
     }
 }
