@@ -42,7 +42,8 @@ public class boardService {
             existing.setReferral(true);
         if(newUpdate.isTailored())
             existing.setTailored(true);
-
+        if(newUpdate.getStatus()!=null)
+            existing.setStatus(newUpdate.getStatus());
         return repo.save(existing);
     }
 

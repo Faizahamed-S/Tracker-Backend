@@ -11,7 +11,7 @@ import com.ApplyZap.Tracker.model.Application;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
 
-
+@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/board")
 public class boardController {
@@ -34,12 +34,12 @@ public class boardController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
     }
-    @PostMapping("/application")
+    @PostMapping("/applications")
     public ResponseEntity<Application> createApplication(@RequestBody Application application){
         return new ResponseEntity<>(boardService.createApplication(application),HttpStatus.CREATED);
     }
 
-    @PutMapping("/application/{id}")
+    @PutMapping("/applications/{id}")
     public ResponseEntity<Application> updateApplication(@PathVariable Long id, @RequestBody Application application)
     {
         Optional<Application> existing= boardService.getApplicationById(id);
@@ -52,7 +52,7 @@ public class boardController {
         }
     }
 
-    @DeleteMapping("/application/{id}")
+    @DeleteMapping("/applications/{id}")
     public ResponseEntity<Application> deleteApplication(@PathVariable Long id){
         Optional<Application> application = boardService.getApplicationById(id);
         if(application.isPresent())
@@ -70,6 +70,19 @@ public class boardController {
     public ResponseEntity<List<Application>> getApplicationByStatus(@PathVariable ApplicationStatus status)
     {
         return new ResponseEntity<>(boardService.getApplicationByStatus(status),HttpStatus.OK);
+    }
+
+    @PatchMapping("/applications/{id}")
+    public ResponseEntity<Application> patchApplication(@PathVariable Long id, @RequestBody Application partialUpdate)
+    {
+        Optional<Application> existing= boardService.getApplicationById(id);
+        if(existing.isPresent()){
+            Application updated=boardService.updateApplication(existing.get(), partialUpdate);
+            return new ResponseEntity<>(updated,HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 }
