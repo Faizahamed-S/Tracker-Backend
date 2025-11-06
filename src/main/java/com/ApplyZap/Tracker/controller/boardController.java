@@ -11,7 +11,7 @@ import com.ApplyZap.Tracker.model.Application;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
 
-@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin(origins = {"http://localhost:8081", "chrome-extension://llhglfinjehpmcphdjkjnjgdogkkjbln"})
 @RestController
 @RequestMapping("/board")
 public class boardController {
@@ -84,5 +84,6 @@ public class boardController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
 
 }
