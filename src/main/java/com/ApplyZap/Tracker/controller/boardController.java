@@ -11,7 +11,7 @@ import com.ApplyZap.Tracker.model.Application;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
 
-@CrossOrigin(origins = {"http://localhost:8081", "chrome-extension://llhglfinjehpmcphdjkjnjgdogkkjbln"})
+@CrossOrigin(origins = {"http://localhost:8081","https://applyzap-auth-buddy.lovable.app","https://2c784761dad8.ngrok-free.app","chrome-extension://llhglfinjehpmcphdjkjnjgdogkkjbln"})
 @RestController
 @RequestMapping("/board")
 public class boardController {
