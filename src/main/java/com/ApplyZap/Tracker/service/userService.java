@@ -3,6 +3,8 @@ package com.ApplyZap.Tracker.service;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.userRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,5 +58,20 @@ public class userService {
      */
     public Optional<User> findBySupabaseUserId(String supabaseUserId) {
         return userRepository.findBySupabaseUserId(supabaseUserId);
+    }
+
+    /**
+     * Get the currently authenticated user from SecurityContext.
+     * Returns the User object that was set during authentication in JwtAuthFilter.
+     * 
+     * @return Current authenticated User
+     * @throws IllegalStateException if no authenticated user is found
+     */
+    public User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User) {
+            return (User) auth.getPrincipal();
+        }
+        throw new IllegalStateException("No authenticated user found in SecurityContext");
     }
 }
