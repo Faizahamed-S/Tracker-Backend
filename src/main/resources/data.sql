@@ -1,3 +1,10 @@
+-- Multi-User Database Isolation: 
+-- Application inserts are disabled because applications must be associated with authenticated users.
+-- Applications can only be created via the API after user authentication.
+-- Each application is automatically assigned to the authenticated user who created it.
+
+-- Previously seeded test data (commented out for multi-user isolation):
+/*
 INSERT INTO application (company_name, role_name, date_of_application, job_link, tailored, job_description, referral, status)
 VALUES
 ('Google', 'Software Engineer', '2025-01-10', 'https://careers.google.com/jobs/results/123456', true, 'Fresher role, must know Java, C++ or Python.', false, 'APPLIED'),
@@ -49,3 +56,4 @@ VALUES
 ('GitLab', 'DevOps Engineer', '2025-05-18', 'https://about.gitlab.com/jobs/889977', true, 'CI/CD automation and Docker infrastructure.', false, 'APPLIED'),
 ('Coursera', 'Software Engineer', '2025-05-20', 'https://about.coursera.org/careers/334488', true, 'Work on education platform backend using Java.', false, 'APPLIED'),
 ('Duolingo', 'Frontend Developer', '2025-05-22', 'https://careers.duolingo.com/jobs/998866', false, 'React, UI/UX optimization, and localization.', true, 'APPLIED');
+*/
