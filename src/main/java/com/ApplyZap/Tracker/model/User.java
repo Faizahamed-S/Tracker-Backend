@@ -44,6 +44,10 @@ public class User {
     @Column(name = "profile_data", columnDefinition = "jsonb")
     private Map<String, Object> profileData;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "tracker_config", columnDefinition = "jsonb")
+    private Map<String, Object> trackerConfig;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -11,4 +11,5 @@ public class UserProfileUpdateDTO {
     private String lastName;
     private String timezone;
     private Map<String, Object> profileData;
+    private Map<String, Object> trackerConfig;
 }

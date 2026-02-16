@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 
 @Service
@@ -49,6 +52,16 @@ public class userService {
         newUser.setFirstName(firstName);
         newUser.setLastName(lastName);
         newUser.setDateOfBirth(dateOfBirth);
+        // Default tracker config (original board): Wishlist, Applied, Interviewing, Offer, Rejected
+        Map<String, Object> defaultConfig = new HashMap<>();
+        defaultConfig.put("columns", List.of(
+                Map.of("id", "col_wishlist", "title", "Wishlist", "color", "gray"),
+                Map.of("id", "col_applied", "title", "Applied", "color", "blue"),
+                Map.of("id", "col_interview", "title", "Interviewing", "color", "yellow"),
+                Map.of("id", "col_offer", "title", "Offer", "color", "green"),
+                Map.of("id", "col_rejected", "title", "Rejected", "color", "red")
+        ));
+        newUser.setTrackerConfig(defaultConfig);
         // createdAt and updatedAt will be set automatically by @PrePersist
 
         return userRepository.save(newUser);
@@ -97,6 +110,8 @@ public class userService {
             user.setTimezone(dto.getTimezone());
         if (dto.getProfileData() != null)
             user.setProfileData(dto.getProfileData());
+        if (dto.getTrackerConfig() != null)
+            user.setTrackerConfig(dto.getTrackerConfig());
         return userRepository.save(user);
     }
 }
