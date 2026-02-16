@@ -205,6 +205,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        // Let CORS preflight (OPTIONS) pass without auth - browser doesn't send Authorization on preflight
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
         String path = request.getRequestURI();
         // Skip filter for public paths (no auth required)
         return path.equals("/")
