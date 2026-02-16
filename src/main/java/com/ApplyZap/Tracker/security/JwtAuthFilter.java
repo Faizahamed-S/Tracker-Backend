@@ -211,6 +211,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.equals("/favicon.ico")
                 || path.startsWith("/actuator")
                 || path.startsWith("/api/user-sync")
-                || path.startsWith("/api/user-sync/test");
+                || path.startsWith("/api/user-sync/test")
+                || path.startsWith("/h2-console");
     }
 }

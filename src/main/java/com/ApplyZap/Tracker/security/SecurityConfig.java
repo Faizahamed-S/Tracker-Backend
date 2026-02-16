@@ -24,9 +24,11 @@ public class SecurityConfig {
                 http
                                 .csrf(csrf -> csrf.disable())
                                 .cors(Customizer.withDefaults())
+                                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers("/api/user-sync").permitAll()
+                                                .requestMatchers("/h2-console/**").permitAll()
                                                 .requestMatchers("/board/**").hasRole("USER")
                                                 .anyRequest().authenticated())
                                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
