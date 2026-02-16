@@ -28,8 +28,7 @@ public class Application {
     @Column(name = "job_description", columnDefinition = "TEXT")
     private String jobDescription;
     private boolean referral;
-    @Enumerated(EnumType.STRING)
-    private ApplicationStatus status;
+    private String status;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "application_metadata", columnDefinition = "jsonb")
