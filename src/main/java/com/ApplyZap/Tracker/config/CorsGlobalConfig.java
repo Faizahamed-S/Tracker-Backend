@@ -25,7 +25,7 @@ public class CorsGlobalConfig implements Filter {
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
         response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("X-Frame-Options", "ALLOWALL");
+        response.setHeader("X-Frame-Options", "DENY");
 
         chain.doFilter(req, res);
     }

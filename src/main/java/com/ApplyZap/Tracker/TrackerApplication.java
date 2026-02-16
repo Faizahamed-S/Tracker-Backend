@@ -12,9 +12,6 @@ public class TrackerApplication {
                 .ignoreIfMissing()
                 .load();
 
-        System.out.println("✅ Dotenv loaded entries:");
-        dotenv.entries().forEach(e -> System.out.println(e.getKey() + " = " + e.getValue()));
-
         dotenv.entries().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
     }
 
