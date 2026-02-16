@@ -95,7 +95,13 @@ public class TokenIntrospectionService {
      */
     public TokenVerificationResult verifyToken(String token) {
         String authUrl = supabaseConfig.getAuthUrl();
-
+        System.out.println("DEBUG - Auth URL: " + authUrl);
+        System.out.println("DEBUG - Anon Key: " + (supabaseConfig.getAnonKey() != null ? "EXISTS" : "NULL/MISSING")); // adding
+                                                                                                                      // debug
+                                                                                                                      // for
+                                                                                                                      // local
+                                                                                                                      // dev
+                                                                                                                      // testing
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
