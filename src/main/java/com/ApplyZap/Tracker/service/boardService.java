@@ -1,7 +1,6 @@
 package com.ApplyZap.Tracker.service;
 
 import com.ApplyZap.Tracker.model.Application;
-import com.ApplyZap.Tracker.model.ApplicationStatus;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.boardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +62,12 @@ public class boardService {
             existing.setCompanyName(newUpdate.getCompanyName());
         if (newUpdate.getRoleName() != null)
             existing.setRoleName(newUpdate.getRoleName());
-        if (new Date().getTime() - existing.getDateOfApplication().getTime() < 60 * 1000)
-            existing.setDateOfApplication(newUpdate.getDateOfApplication());
+        if (newUpdate.getDateOfApplication() != null) {
+            if (existing.getDateOfApplication() == null || 
+                new Date().getTime() - existing.getDateOfApplication().getTime() >= 60 * 1000) {
+                existing.setDateOfApplication(newUpdate.getDateOfApplication());
+            }
+        }
         if (newUpdate.getJobLink() != null)
             existing.setJobLink(newUpdate.getJobLink());
         if (newUpdate.getJobDescription() != null)
@@ -75,6 +78,8 @@ public class boardService {
             existing.setTailored(true);
         if (newUpdate.getStatus() != null)
             existing.setStatus(newUpdate.getStatus());
+        if (newUpdate.getApplicationMetadata() != null)
+            existing.setApplicationMetadata(newUpdate.getApplicationMetadata());
         return repo.save(existing);
     }
 
@@ -98,8 +103,18 @@ public class boardService {
      * Only returns applications that belong to the current user and match the
      * status.
      */
-    public List<Application> getApplicationByStatus(ApplicationStatus status) {
+    public List<Application> getApplicationByStatus(String status) {
         User currentUser = userService.getCurrentUser();
         return repo.findByUserAndStatus(currentUser, status);
+    }
+
+    /**
+     * Get all unique statuses used by the currently authenticated user.
+     * Returns a list of distinct status strings (excluding null values).
+     * Useful for populating dynamic board columns or status filters.
+     */
+    public List<String> getUniqueStatuses() {
+        User currentUser = userService.getCurrentUser();
+        return repo.findDistinctStatusesByUser(currentUser);
     }
 }
