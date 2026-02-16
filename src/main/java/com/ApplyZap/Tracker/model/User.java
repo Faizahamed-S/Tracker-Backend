@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Table(name = "users", indexes = @Index(name = "idx_supabase_user_id", columnList = "supabaseUserId", unique = true))
@@ -33,6 +36,13 @@ public class User {
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth; // Using DOB instead of age (more accurate)
+
+    @Column(name = "timezone")
+    private String timezone;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "profile_data", columnDefinition = "jsonb")
+    private Map<String, Object> profileData;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
