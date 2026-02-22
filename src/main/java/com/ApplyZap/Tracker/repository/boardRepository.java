@@ -4,6 +4,7 @@ import com.ApplyZap.Tracker.model.Application;
 import com.ApplyZap.Tracker.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,9 +22,17 @@ public interface boardRepository extends JpaRepository<Application, Long> {
     // Find applications by user and status
     List<Application> findByUserAndStatus(User user, String status);
 
+    // Find applications by user and status (case-insensitive, for deployed compatibility)
+    @Query("SELECT a FROM Application a WHERE a.user = :user AND UPPER(a.status) = UPPER(:status)")
+    List<Application> findByUserAndStatusIgnoreCase(@Param("user") User user, @Param("status") String status);
+
     // Find distinct statuses for a user (for dynamic board columns)
     @Query("SELECT DISTINCT a.status FROM Application a WHERE a.user = :user AND a.status IS NOT NULL")
     List<String> findDistinctStatusesByUser(User user);
+
+    // Count applications by status for a user (for analytics dashboard)
+    @Query("SELECT a.status, COUNT(a) FROM Application a WHERE a.user = :user GROUP BY a.status")
+    List<Object[]> countByUserGroupByStatus(@Param("user") User user);
 
     // Legacy method - kept for backward compatibility but should not be used
     // directly

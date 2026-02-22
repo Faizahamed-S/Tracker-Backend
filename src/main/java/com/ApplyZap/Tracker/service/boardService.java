@@ -1,8 +1,12 @@
 package com.ApplyZap.Tracker.service;
 
+import com.ApplyZap.Tracker.model.ActivityType;
 import com.ApplyZap.Tracker.model.Application;
+import com.ApplyZap.Tracker.model.ApplicationActivityLog;
 import com.ApplyZap.Tracker.model.User;
+import com.ApplyZap.Tracker.repository.ApplicationActivityLogRepository;
 import com.ApplyZap.Tracker.repository.boardRepository;
+import com.ApplyZap.Tracker.util.StatusNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,9 @@ public class boardService {
 
     @Autowired
     userService userService;
+
+    @Autowired
+    ApplicationActivityLogRepository activityLogRepository;
 
     /**
      * Get all applications for the currently authenticated user.
@@ -46,7 +53,17 @@ public class boardService {
         User currentUser = userService.getCurrentUser();
         // Auto-assign to current user - ignore any user field in request body
         application.setUser(currentUser);
-        return repo.save(application);
+        application.setStatus(StatusNormalizer.normalize(application.getStatus()));
+        Application saved = repo.save(application);
+        // Log CREATED for analytics
+        ApplicationActivityLog log = new ApplicationActivityLog();
+        log.setUser(currentUser);
+        log.setApplication(saved);
+        log.setActivityType(ActivityType.CREATED);
+        log.setPreviousStatus(null);
+        log.setNewStatus(saved.getStatus());
+        activityLogRepository.save(log);
+        return saved;
     }
 
     /**
@@ -57,6 +74,7 @@ public class boardService {
     public Application updateApplication(Application existing, Application newUpdate) {
         // Ensure user cannot be changed through update
         // (user is already set and verified via getApplicationById)
+        String oldStatus = existing.getStatus();
 
         if (newUpdate.getCompanyName() != null)
             existing.setCompanyName(newUpdate.getCompanyName());
@@ -77,10 +95,24 @@ public class boardService {
         if (newUpdate.isTailored())
             existing.setTailored(true);
         if (newUpdate.getStatus() != null)
-            existing.setStatus(newUpdate.getStatus());
+            existing.setStatus(StatusNormalizer.normalize(newUpdate.getStatus()));
         if (newUpdate.getApplicationMetadata() != null)
             existing.setApplicationMetadata(newUpdate.getApplicationMetadata());
-        return repo.save(existing);
+
+        Application saved = repo.save(existing);
+
+        // Log STATUS_CHANGE for analytics when status actually changed
+        String newStatus = saved.getStatus();
+        if (!Objects.equals(oldStatus, newStatus)) {
+            ApplicationActivityLog log = new ApplicationActivityLog();
+            log.setUser(saved.getUser());
+            log.setApplication(saved);
+            log.setActivityType(ActivityType.STATUS_CHANGE);
+            log.setPreviousStatus(oldStatus);
+            log.setNewStatus(newStatus);
+            activityLogRepository.save(log);
+        }
+        return saved;
     }
 
     /**
@@ -105,7 +137,7 @@ public class boardService {
      */
     public List<Application> getApplicationByStatus(String status) {
         User currentUser = userService.getCurrentUser();
-        return repo.findByUserAndStatus(currentUser, status);
+        return repo.findByUserAndStatusIgnoreCase(currentUser, status);
     }
 
     /**
@@ -115,6 +147,12 @@ public class boardService {
      */
     public List<String> getUniqueStatuses() {
         User currentUser = userService.getCurrentUser();
-        return repo.findDistinctStatusesByUser(currentUser);
+        List<String> raw = repo.findDistinctStatusesByUser(currentUser);
+        return raw.stream()
+                .map(StatusNormalizer::normalize)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .toList();
     }
 }
