@@ -2,6 +2,7 @@ package com.ApplyZap.Tracker.repository;
 
 import com.ApplyZap.Tracker.model.ApplicationActivityLog;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -43,6 +44,9 @@ public interface ApplicationActivityLogRepository extends JpaRepository<Applicat
 
     /**
      * Delete all activity log entries for an application (e.g. before deleting the application).
+     * Bulk DELETE in a single statement so it runs reliably inside a transaction.
      */
-    void deleteByApplication_Id(Long applicationId);
+    @Modifying
+    @Query("DELETE FROM ApplicationActivityLog l WHERE l.application.id = :applicationId")
+    void deleteByApplication_Id(@Param("applicationId") Long applicationId);
 }

@@ -9,6 +9,7 @@ import com.ApplyZap.Tracker.repository.boardRepository;
 import com.ApplyZap.Tracker.util.StatusNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.*;
@@ -118,8 +119,10 @@ public class boardService {
     /**
      * Delete an application by ID for the currently authenticated user.
      * Only deletes if the application belongs to the current user.
+     * Removes related activity log rows first to satisfy FK constraint, then deletes the application.
      * Returns true if deleted, false if not found or doesn't belong to user.
      */
+    @Transactional
     public boolean deleteApplication(Long id) {
         User currentUser = userService.getCurrentUser();
         Optional<Application> application = repo.findByIdAndUser(id, currentUser);
