@@ -124,6 +124,7 @@ public class boardService {
         User currentUser = userService.getCurrentUser();
         Optional<Application> application = repo.findByIdAndUser(id, currentUser);
         if (application.isPresent()) {
+            activityLogRepository.deleteByApplication_Id(application.get().getId());
             repo.delete(application.get());
             return true;
         }
