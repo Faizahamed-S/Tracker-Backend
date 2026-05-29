@@ -29,12 +29,15 @@ public class SecurityConfig {
                                                 .requestMatchers("/actuator/**").permitAll()
                                                 .requestMatchers("/api/user-sync").permitAll()
                                                 .requestMatchers("/h2-console/**").permitAll()
+                                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                                                 .requestMatchers("/board/**").hasRole("USER")
+                                                .requestMatchers("/api/analytics/**").hasRole("USER")
+                                                .requestMatchers("/api/groups/**").hasRole("USER")
                                                 .anyRequest().authenticated())
                                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-                System.out.println("✅ Custom SecurityConfig loaded - Actuator endpoints are public");
+                System.out.println("✅ Custom SecurityConfig loaded - Actuator and Swagger endpoints are public");
                 return http.build();
         }
 }
