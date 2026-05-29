@@ -216,6 +216,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/actuator")
                 || path.startsWith("/api/user-sync")
                 || path.startsWith("/api/user-sync/test")
-                || path.startsWith("/h2-console");
+                || path.startsWith("/h2-console")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs");
     }
 }
