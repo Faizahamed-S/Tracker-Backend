@@ -1,16 +1,24 @@
 package com.ApplyZap.Tracker.service;
 
+import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
+import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
+import com.ApplyZap.Tracker.dto.GroupAddResultDTO;
+import com.ApplyZap.Tracker.dto.GroupJobCreateDTO;
 import com.ApplyZap.Tracker.model.ActivityType;
 import com.ApplyZap.Tracker.model.Application;
 import com.ApplyZap.Tracker.model.ApplicationActivityLog;
+import com.ApplyZap.Tracker.model.GroupJob;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.ApplicationActivityLogRepository;
 import com.ApplyZap.Tracker.repository.boardRepository;
+import com.ApplyZap.Tracker.util.ApplicationListSort;
 import com.ApplyZap.Tracker.util.StatusNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.*;
 
@@ -26,13 +34,51 @@ public class boardService {
     @Autowired
     ApplicationActivityLogRepository activityLogRepository;
 
+    @Autowired
+    GroupJobService groupJobService;
+
     /**
      * Get all applications for the currently authenticated user.
      * Only returns applications that belong to the current user.
      */
     public List<Application> getApplications() {
-        User currentUser = userService.getCurrentUser();
-        return repo.findByUser(currentUser);
+        return getApplications(null, null, null);
+    }
+
+    /**
+     * List applications with optional sort and filters. Omit sort for legacy (unordered) behavior.
+     */
+    public List<Application> getApplications(String sortParam, Boolean referral, Boolean tailored) {
+        ApplicationListSort.validateParamOrThrow(sortParam);
+        User user = userService.getCurrentUser();
+        Optional<ApplicationListSort> sortOpt = ApplicationListSort.fromParam(sortParam);
+        boolean filterReferral = referral != null;
+        boolean filterTailored = tailored != null;
+
+        if (sortOpt.isEmpty()) {
+            if (!filterReferral && !filterTailored) {
+                return repo.findByUser(user);
+            }
+            if (filterReferral && filterTailored) {
+                return repo.findByUserAndReferralAndTailored(user, referral, tailored);
+            }
+            if (filterReferral) {
+                return repo.findByUserAndReferral(user, referral);
+            }
+            return repo.findByUserAndTailored(user, tailored);
+        }
+
+        Sort sort = sortOpt.get().toSort();
+        if (!filterReferral && !filterTailored) {
+            return repo.findByUser(user, sort);
+        }
+        if (filterReferral && filterTailored) {
+            return repo.findByUserAndReferralAndTailored(user, referral, tailored, sort);
+        }
+        if (filterReferral) {
+            return repo.findByUserAndReferral(user, referral, sort);
+        }
+        return repo.findByUserAndTailored(user, tailored, sort);
     }
 
     /**
@@ -47,16 +93,37 @@ public class boardService {
 
     /**
      * Create a new application for the currently authenticated user.
-     * Automatically assigns the application to the current user, ignoring any user
-     * field in the request.
+     * Optionally mirrors job link, company, and role to collaborative group boards.
      */
-    public Application createApplication(Application application) {
+    @Transactional
+    public ApplicationCreateResponseDTO createApplication(ApplicationCreateDTO dto) {
+        Application saved = saveNewApplication(mapDtoToApplication(dto));
+        List<GroupAddResultDTO> groupResults = addToGroups(dto, saved);
+        return new ApplicationCreateResponseDTO(saved, groupResults);
+    }
+
+    private Application mapDtoToApplication(ApplicationCreateDTO dto) {
+        Application application = new Application();
+        application.setCompanyName(dto.getCompanyName());
+        application.setRoleName(dto.getRoleName());
+        application.setDateOfApplication(dto.getDateOfApplication());
+        application.setJobLink(dto.getJobLink());
+        application.setTailored(dto.isTailored());
+        application.setJobDescription(dto.getJobDescription());
+        application.setReferral(dto.isReferral());
+        application.setStatus(dto.getStatus());
+        application.setApplicationMetadata(dto.getApplicationMetadata());
+        return application;
+    }
+
+    private Application saveNewApplication(Application application) {
         User currentUser = userService.getCurrentUser();
-        // Auto-assign to current user - ignore any user field in request body
         application.setUser(currentUser);
         application.setStatus(StatusNormalizer.normalize(application.getStatus()));
+        LocalDateTime now = LocalDateTime.now();
+        application.setCreatedAt(now);
+        application.setStatusUpdatedAt(now);
         Application saved = repo.save(application);
-        // Log CREATED for analytics
         ApplicationActivityLog log = new ApplicationActivityLog();
         log.setUser(currentUser);
         log.setApplication(saved);
@@ -65,6 +132,36 @@ public class boardService {
         log.setNewStatus(saved.getStatus());
         activityLogRepository.save(log);
         return saved;
+    }
+
+    private List<GroupAddResultDTO> addToGroups(ApplicationCreateDTO dto, Application saved) {
+        if (dto.getGroupIds() == null || dto.getGroupIds().isEmpty()) {
+            return List.of();
+        }
+        List<GroupAddResultDTO> results = new ArrayList<>();
+        for (Long groupId : dto.getGroupIds()) {
+            if (groupId == null) {
+                continue;
+            }
+            results.add(addToGroup(groupId, saved));
+        }
+        return results;
+    }
+
+    private GroupAddResultDTO addToGroup(Long groupId, Application saved) {
+        try {
+            if (saved.getJobLink() == null || saved.getJobLink().isBlank()) {
+                return new GroupAddResultDTO(groupId, false, null, "Job link is required to add to a group");
+            }
+            GroupJobCreateDTO jobDto = new GroupJobCreateDTO(
+                    saved.getJobLink(),
+                    saved.getCompanyName(),
+                    saved.getRoleName());
+            GroupJob job = groupJobService.createJob(groupId, jobDto);
+            return new GroupAddResultDTO(groupId, true, job.getId(), null);
+        } catch (Exception e) {
+            return new GroupAddResultDTO(groupId, false, null, e.getMessage());
+        }
     }
 
     /**
@@ -105,6 +202,8 @@ public class boardService {
         // Log STATUS_CHANGE for analytics when status actually changed
         String newStatus = saved.getStatus();
         if (!Objects.equals(oldStatus, newStatus)) {
+            saved.setStatusUpdatedAt(LocalDateTime.now());
+            saved = repo.save(saved);
             ApplicationActivityLog log = new ApplicationActivityLog();
             log.setUser(saved.getUser());
             log.setApplication(saved);
@@ -140,8 +239,26 @@ public class boardService {
      * status.
      */
     public List<Application> getApplicationByStatus(String status) {
-        User currentUser = userService.getCurrentUser();
-        return repo.findByUserAndStatusIgnoreCase(currentUser, status);
+        return getApplicationByStatus(status, null, null, null);
+    }
+
+    public List<Application> getApplicationByStatus(String status, String sortParam, Boolean referral, Boolean tailored) {
+        ApplicationListSort.validateParamOrThrow(sortParam);
+        User user = userService.getCurrentUser();
+        Optional<ApplicationListSort> sortOpt = ApplicationListSort.fromParam(sortParam);
+        boolean filterReferral = referral != null;
+        boolean filterTailored = tailored != null;
+
+        if (sortOpt.isEmpty() && !filterReferral && !filterTailored) {
+            return repo.findByUserAndStatusIgnoreCase(user, status);
+        }
+
+        List<Application> all = getApplications(sortParam, referral, tailored);
+        String normalized = StatusNormalizer.normalize(status);
+        return all.stream()
+                .filter(a -> a.getStatus() != null
+                        && Objects.equals(StatusNormalizer.normalize(a.getStatus()), normalized))
+                .toList();
     }
 
     /**

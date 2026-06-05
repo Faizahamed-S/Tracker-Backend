@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
+import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
 import com.ApplyZap.Tracker.service.boardService;
 import com.ApplyZap.Tracker.model.Application;
 import java.util.*;
@@ -29,8 +31,14 @@ public class boardController {
             @ApiResponse(responseCode = "401", description = "Not authorized")
     })
     @GetMapping("/applications")
-    public ResponseEntity<List<Application>> getApplications() {
-        return new ResponseEntity<>(boardService.getApplications(), HttpStatus.OK);
+    public ResponseEntity<List<Application>> getApplications(
+            @Parameter(description = "Sort: added_desc, added_asc, status_updated_desc, status_updated_asc. Omit for legacy order.")
+            @RequestParam(required = false) String sort,
+            @Parameter(description = "Filter by referral flag")
+            @RequestParam(required = false) Boolean referral,
+            @Parameter(description = "Filter by tailored flag")
+            @RequestParam(required = false) Boolean tailored) {
+        return new ResponseEntity<>(boardService.getApplications(sort, referral, tailored), HttpStatus.OK);
     }
 
     @Operation(summary = "Get application by ID", description = "Get a single job application by its ID")
@@ -51,14 +59,16 @@ public class boardController {
         }
     }
 
-    @Operation(summary = "Create new application", description = "Add a new job application to your board")
+    @Operation(summary = "Create new application", description = "Add a new job application to your board. "
+            + "Optional groupIds mirrors link, company, and role to collaborative group boards. "
+            + "Returns application plus per-group results.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Application created"),
             @ApiResponse(responseCode = "401", description = "Not authorized")
     })
     @PostMapping("/applications")
-    public ResponseEntity<Application> createApplication(@RequestBody Application application) {
-        return new ResponseEntity<>(boardService.createApplication(application), HttpStatus.CREATED);
+    public ResponseEntity<ApplicationCreateResponseDTO> createApplication(@RequestBody ApplicationCreateDTO dto) {
+        return new ResponseEntity<>(boardService.createApplication(dto), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Update application", description = "Update all fields of an existing job application")
@@ -121,8 +131,11 @@ public class boardController {
     @GetMapping("/applications/status/{status}")
     public ResponseEntity<List<Application>> getApplicationByStatus(
             @Parameter(description = "Status name (e.g., 'applied', 'interview', 'offer')", required = true, example = "applied")
-            @PathVariable String status) {
-        return new ResponseEntity<>(boardService.getApplicationByStatus(status), HttpStatus.OK);
+            @PathVariable String status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Boolean referral,
+            @RequestParam(required = false) Boolean tailored) {
+        return new ResponseEntity<>(boardService.getApplicationByStatus(status, sort, referral, tailored), HttpStatus.OK);
     }
 
     @Operation(summary = "Partially update application", description = "Update only specific fields of an application")

@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.repository;
 
+import com.ApplyZap.Tracker.model.ActivityType;
 import com.ApplyZap.Tracker.model.ApplicationActivityLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ApplicationActivityLogRepository extends JpaRepository<ApplicationActivityLog, Long> {
@@ -49,4 +51,12 @@ public interface ApplicationActivityLogRepository extends JpaRepository<Applicat
     @Modifying
     @Query("DELETE FROM ApplicationActivityLog l WHERE l.application.id = :applicationId")
     void deleteByApplication_Id(@Param("applicationId") Long applicationId);
+
+    @Query("SELECT MIN(l.createdAt) FROM ApplicationActivityLog l WHERE l.application.id = :applicationId AND l.activityType = :activityType")
+    Optional<LocalDateTime> findEarliestCreatedAtByApplicationAndType(
+            @Param("applicationId") Long applicationId, @Param("activityType") ActivityType activityType);
+
+    @Query("SELECT MAX(l.createdAt) FROM ApplicationActivityLog l WHERE l.application.id = :applicationId AND l.activityType = :activityType")
+    Optional<LocalDateTime> findLatestCreatedAtByApplicationAndType(
+            @Param("applicationId") Long applicationId, @Param("activityType") ActivityType activityType);
 }

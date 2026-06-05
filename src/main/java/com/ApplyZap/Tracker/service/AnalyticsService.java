@@ -82,7 +82,11 @@ public class AnalyticsService {
             }
         }
 
-        return new DashboardDTO.Summary(totalApplications, interviews, offers, statusCounts);
+        long referralCount = boardRepository.countByUserAndReferral(user, true);
+        long tailoredCount = boardRepository.countByUserAndTailored(user, true);
+
+        return new DashboardDTO.Summary(totalApplications, interviews, offers, statusCounts, referralCount,
+                tailoredCount);
     }
 
     private List<DashboardDTO.RecentActivityItem> buildRecentActivity(User user) {

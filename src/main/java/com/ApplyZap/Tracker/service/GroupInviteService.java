@@ -104,7 +104,8 @@ public class GroupInviteService {
                     boolean valid = inv.getStatus() == GroupInviteStatus.PENDING
                             && inv.getExpiresAt().isAfter(LocalDateTime.now());
                     String inviterName = inv.getInvitedBy().getFirstName() + " " + inv.getInvitedBy().getLastName();
-                    return new GroupInviteInfoDTO(inv.getGroup().getName(), inviterName, inv.getEmail(), valid);
+                    return new GroupInviteInfoDTO(inv.getGroup().getId(), inv.getGroup().getName(), inviterName,
+                            inv.getEmail(), valid);
                 });
     }
 }
