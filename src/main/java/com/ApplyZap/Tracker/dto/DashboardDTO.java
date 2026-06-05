@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,10 @@ public class DashboardDTO {
         private long interviews;
         private long offers;
         private Map<String, Long> statusCounts;
+        @JsonProperty("referral_count")
+        private long referralCount;
+        @JsonProperty("tailored_count")
+        private long tailoredCount;
     }
 
     @Data

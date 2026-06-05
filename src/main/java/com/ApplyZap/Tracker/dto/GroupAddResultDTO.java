@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupInviteInfoDTO {
+public class GroupAddResultDTO {
     private Long groupId;
-    private String groupName;
-    private String inviterName;
-    private String email;
-    private boolean valid;
+    private boolean success;
+    private Long jobId;
+    private String error;
 }

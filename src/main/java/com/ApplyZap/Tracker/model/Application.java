@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
 
@@ -29,6 +30,14 @@ public class Application {
     private String jobDescription;
     private boolean referral;
     private String status;
+
+    /** When the application was first saved to the tracker (server-side). */
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    /** When status last changed (server-side); equals createdAt on create. */
+    @Column(name = "status_updated_at")
+    private LocalDateTime statusUpdatedAt;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "application_metadata", columnDefinition = "jsonb")

@@ -10,11 +10,34 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Sort;
+
 @Repository
 public interface boardRepository extends JpaRepository<Application, Long> {
 
     // Find all applications for a specific user
     List<Application> findByUser(User user);
+
+    List<Application> findByUser(User user, Sort sort);
+
+    List<Application> findByUserAndReferral(User user, boolean referral, Sort sort);
+
+    List<Application> findByUserAndTailored(User user, boolean tailored, Sort sort);
+
+    List<Application> findByUserAndReferralAndTailored(User user, boolean referral, boolean tailored, Sort sort);
+
+    List<Application> findByUserAndReferral(User user, boolean referral);
+
+    List<Application> findByUserAndTailored(User user, boolean tailored);
+
+    List<Application> findByUserAndReferralAndTailored(User user, boolean referral, boolean tailored);
+
+    long countByUserAndReferral(User user, boolean referral);
+
+    long countByUserAndTailored(User user, boolean tailored);
+
+    @Query("SELECT a FROM Application a WHERE a.createdAt IS NULL OR a.statusUpdatedAt IS NULL")
+    List<Application> findNeedingTimestampBackfill();
 
     // Find application by ID and user (ensures ownership)
     Optional<Application> findByIdAndUser(Long id, User user);
@@ -25,6 +48,9 @@ public interface boardRepository extends JpaRepository<Application, Long> {
     // Find applications by user and status (case-insensitive, for deployed compatibility)
     @Query("SELECT a FROM Application a WHERE a.user = :user AND UPPER(a.status) = UPPER(:status)")
     List<Application> findByUserAndStatusIgnoreCase(@Param("user") User user, @Param("status") String status);
+
+    @Query("SELECT a FROM Application a WHERE a.user = :user AND UPPER(a.status) = UPPER(:status)")
+    List<Application> findByUserAndStatusIgnoreCase(@Param("user") User user, @Param("status") String status, Sort sort);
 
     // Find distinct statuses for a user (for dynamic board columns)
     @Query("SELECT DISTINCT a.status FROM Application a WHERE a.user = :user AND a.status IS NOT NULL")
