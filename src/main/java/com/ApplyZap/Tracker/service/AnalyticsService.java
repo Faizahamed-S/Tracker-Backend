@@ -5,6 +5,7 @@ import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.ApplicationActivityLogRepository;
 import com.ApplyZap.Tracker.repository.boardRepository;
 import com.ApplyZap.Tracker.util.StatusNormalizer;
+import com.ApplyZap.Tracker.util.StreakCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -85,8 +86,11 @@ public class AnalyticsService {
         long referralCount = boardRepository.countByUserAndReferral(user, true);
         long tailoredCount = boardRepository.countByUserAndTailored(user, true);
 
+        StreakCalculator.StreakResult streaks = StreakCalculator.compute(
+                applicationActivityLogRepository.findByUser_IdOrderByCreatedAtAsc(user.getId()));
+
         return new DashboardDTO.Summary(totalApplications, interviews, offers, statusCounts, referralCount,
-                tailoredCount);
+                tailoredCount, streaks.currentStreak(), streaks.longestStreak());
     }
 
     private List<DashboardDTO.RecentActivityItem> buildRecentActivity(User user) {

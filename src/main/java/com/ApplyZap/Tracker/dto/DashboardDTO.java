@@ -35,6 +35,10 @@ public class DashboardDTO {
         private long referralCount;
         @JsonProperty("tailored_count")
         private long tailoredCount;
+        @JsonProperty("current_streak")
+        private long currentStreak;
+        @JsonProperty("longest_streak")
+        private long longestStreak;
     }
 
     @Data

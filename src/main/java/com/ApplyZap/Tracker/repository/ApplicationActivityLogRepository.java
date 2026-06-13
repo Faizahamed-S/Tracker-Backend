@@ -59,4 +59,6 @@ public interface ApplicationActivityLogRepository extends JpaRepository<Applicat
     @Query("SELECT MAX(l.createdAt) FROM ApplicationActivityLog l WHERE l.application.id = :applicationId AND l.activityType = :activityType")
     Optional<LocalDateTime> findLatestCreatedAtByApplicationAndType(
             @Param("applicationId") Long applicationId, @Param("activityType") ActivityType activityType);
+
+    List<ApplicationActivityLog> findByUser_IdOrderByCreatedAtAsc(Long userId);
 }
