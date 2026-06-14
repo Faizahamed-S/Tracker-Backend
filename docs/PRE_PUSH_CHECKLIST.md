@@ -33,3 +33,13 @@ Run before pushing to Railway / production.
 ## Health
 
 12. `GET /actuator/health` — UP.
+
+## Referral Base CRM
+
+13. `GET /api/referrals` — `[]` for new user, HTTP 200.
+14. `POST /api/referrals` with `{ "name": "Test Contact" }` — 201; `GET /api/referrals` lists it.
+15. `PUT /api/referrals/field-template` with `{ "fields": [{ "key": "met_at", "label": "Met At", "order": 0 }] }` — `GET /api/referrals/field-template` returns same fields; other `trackerConfig` keys unchanged if present.
+16. `POST /board/applications` with `referralContactId` set — response `application.referral` is `true`, `referralContactId` matches; `GET /api/referrals/{id}` shows `associatedApplications`.
+17. `PATCH /board/applications/{id}` with `referral: false` — `referralContactId` cleared on GET list.
+18. `DELETE /api/referrals/{id}` — linked apps have `referral=false` and no `referralContactId`.
+19. Legacy app with `referral=true` only (no contact) — still returned by `GET /board/applications?referral=true`; `referral_count` unchanged on dashboard.

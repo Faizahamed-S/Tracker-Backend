@@ -4,6 +4,7 @@ import com.ApplyZap.Tracker.model.Application;
 import com.ApplyZap.Tracker.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -16,20 +17,28 @@ import org.springframework.data.domain.Sort;
 public interface boardRepository extends JpaRepository<Application, Long> {
 
     // Find all applications for a specific user
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUser(User user);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUser(User user, Sort sort);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUserAndReferral(User user, boolean referral, Sort sort);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUserAndTailored(User user, boolean tailored, Sort sort);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUserAndReferralAndTailored(User user, boolean referral, boolean tailored, Sort sort);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUserAndReferral(User user, boolean referral);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUserAndTailored(User user, boolean tailored);
 
+    @EntityGraph(attributePaths = "referralContact")
     List<Application> findByUserAndReferralAndTailored(User user, boolean referral, boolean tailored);
 
     long countByUserAndReferral(User user, boolean referral);
@@ -40,6 +49,7 @@ public interface boardRepository extends JpaRepository<Application, Long> {
     List<Application> findNeedingTimestampBackfill();
 
     // Find application by ID and user (ensures ownership)
+    @EntityGraph(attributePaths = "referralContact")
     Optional<Application> findByIdAndUser(Long id, User user);
 
     // Find applications by user and status
@@ -65,4 +75,6 @@ public interface boardRepository extends JpaRepository<Application, Long> {
     // Prefer findByUserAndStatus instead
     @Deprecated
     List<Application> findByStatus(String status);
+
+    List<Application> findByUserAndReferralContact_Id(User user, Long referralContactId, Sort sort);
 }

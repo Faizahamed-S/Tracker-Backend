@@ -4,14 +4,18 @@ import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
 import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
 import com.ApplyZap.Tracker.dto.GroupAddResultDTO;
 import com.ApplyZap.Tracker.dto.GroupJobCreateDTO;
+import com.ApplyZap.Tracker.dto.ReferralContactSummaryDTO;
 import com.ApplyZap.Tracker.model.ActivityType;
 import com.ApplyZap.Tracker.model.Application;
 import com.ApplyZap.Tracker.model.ApplicationActivityLog;
 import com.ApplyZap.Tracker.model.GroupJob;
+import com.ApplyZap.Tracker.model.ReferralContact;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.ApplicationActivityLogRepository;
+import com.ApplyZap.Tracker.repository.ReferralContactRepository;
 import com.ApplyZap.Tracker.repository.boardRepository;
 import com.ApplyZap.Tracker.util.ApplicationListSort;
+import com.ApplyZap.Tracker.util.ReferralLinkHelper;
 import com.ApplyZap.Tracker.util.StatusNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -37,6 +41,9 @@ public class boardService {
     @Autowired
     GroupJobService groupJobService;
 
+    @Autowired
+    ReferralContactRepository referralContactRepository;
+
     /**
      * Get all applications for the currently authenticated user.
      * Only returns applications that belong to the current user.
@@ -57,28 +64,28 @@ public class boardService {
 
         if (sortOpt.isEmpty()) {
             if (!filterReferral && !filterTailored) {
-                return repo.findByUser(user);
+                return enrichApplications(repo.findByUser(user));
             }
             if (filterReferral && filterTailored) {
-                return repo.findByUserAndReferralAndTailored(user, referral, tailored);
+                return enrichApplications(repo.findByUserAndReferralAndTailored(user, referral, tailored));
             }
             if (filterReferral) {
-                return repo.findByUserAndReferral(user, referral);
+                return enrichApplications(repo.findByUserAndReferral(user, referral));
             }
-            return repo.findByUserAndTailored(user, tailored);
+            return enrichApplications(repo.findByUserAndTailored(user, tailored));
         }
 
         Sort sort = sortOpt.get().toSort();
         if (!filterReferral && !filterTailored) {
-            return repo.findByUser(user, sort);
+            return enrichApplications(repo.findByUser(user, sort));
         }
         if (filterReferral && filterTailored) {
-            return repo.findByUserAndReferralAndTailored(user, referral, tailored, sort);
+            return enrichApplications(repo.findByUserAndReferralAndTailored(user, referral, tailored, sort));
         }
         if (filterReferral) {
-            return repo.findByUserAndReferral(user, referral, sort);
+            return enrichApplications(repo.findByUserAndReferral(user, referral, sort));
         }
-        return repo.findByUserAndTailored(user, tailored, sort);
+        return enrichApplications(repo.findByUserAndTailored(user, tailored, sort));
     }
 
     /**
@@ -88,7 +95,7 @@ public class boardService {
      */
     public Optional<Application> getApplicationById(Long id) {
         User currentUser = userService.getCurrentUser();
-        return repo.findByIdAndUser(id, currentUser);
+        return repo.findByIdAndUser(id, currentUser).map(this::enrichApplication);
     }
 
     /**
@@ -97,9 +104,13 @@ public class boardService {
      */
     @Transactional
     public ApplicationCreateResponseDTO createApplication(ApplicationCreateDTO dto) {
-        Application saved = saveNewApplication(mapDtoToApplication(dto));
+        Application application = mapDtoToApplication(dto);
+        User currentUser = userService.getCurrentUser();
+        ReferralLinkHelper.applyReferralLink(
+                application, currentUser, dto.isReferral(), dto.getReferralContactId(), referralContactRepository);
+        Application saved = saveNewApplication(application);
         List<GroupAddResultDTO> groupResults = addToGroups(dto, saved);
-        return new ApplicationCreateResponseDTO(saved, groupResults);
+        return new ApplicationCreateResponseDTO(enrichApplication(saved), groupResults);
     }
 
     private Application mapDtoToApplication(ApplicationCreateDTO dto) {
@@ -188,8 +199,7 @@ public class boardService {
             existing.setJobLink(newUpdate.getJobLink());
         if (newUpdate.getJobDescription() != null)
             existing.setJobDescription(newUpdate.getJobDescription());
-        if (newUpdate.isReferral())
-            existing.setReferral(true);
+        applyReferralUpdate(existing, newUpdate);
         if (newUpdate.isTailored())
             existing.setTailored(true);
         if (newUpdate.getStatus() != null)
@@ -212,7 +222,40 @@ public class boardService {
             log.setNewStatus(newStatus);
             activityLogRepository.save(log);
         }
-        return saved;
+        return enrichApplication(saved);
+    }
+
+    private void applyReferralUpdate(Application existing, Application incoming) {
+        User currentUser = userService.getCurrentUser();
+        Long contactId = incoming.getReferralContactId();
+        if (contactId != null) {
+            ReferralLinkHelper.applyReferralLink(
+                    existing, currentUser, true, contactId, referralContactRepository);
+            return;
+        }
+        if (!incoming.isReferral()) {
+            existing.setReferral(false);
+            existing.setReferralContact(null);
+            return;
+        }
+        existing.setReferral(true);
+    }
+
+    private List<Application> enrichApplications(List<Application> applications) {
+        return applications.stream().map(this::enrichApplication).toList();
+    }
+
+    private Application enrichApplication(Application application) {
+        ReferralContact contact = application.getReferralContact();
+        if (contact != null) {
+            application.setReferralContactId(contact.getId());
+            application.setReferralContactSummary(new ReferralContactSummaryDTO(
+                    contact.getId(), contact.getName(), contact.getCompanyName()));
+        } else {
+            application.setReferralContactId(null);
+            application.setReferralContactSummary(null);
+        }
+        return application;
     }
 
     /**
