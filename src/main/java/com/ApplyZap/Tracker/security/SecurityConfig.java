@@ -33,6 +33,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/board/**").hasRole("USER")
                                                 .requestMatchers("/api/analytics/**").hasRole("USER")
                                                 .requestMatchers("/api/groups/**").hasRole("USER")
+                                                .requestMatchers("/api/referrals/**").hasRole("USER")
                                                 .anyRequest().authenticated())
                                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

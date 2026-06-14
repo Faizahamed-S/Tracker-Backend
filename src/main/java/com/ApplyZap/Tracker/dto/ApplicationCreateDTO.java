@@ -19,6 +19,8 @@ public class ApplicationCreateDTO {
     private boolean tailored;
     private String jobDescription;
     private boolean referral;
+    /** Optional CRM contact; when set, referral is forced true on create. */
+    private Long referralContactId;
     private String status;
     private Map<String, Object> applicationMetadata;
     /** Optional: mirror job subset (link, company, role) to these collaborative groups. */

@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.model;
 
+import com.ApplyZap.Tracker.dto.ReferralContactSummaryDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -51,4 +52,17 @@ public class Application {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "referral_contact_id")
+    private ReferralContact referralContact;
+
+    /** JSON input/output; not persisted directly. */
+    @Transient
+    private Long referralContactId;
+
+    /** Populated on GET responses when a CRM contact is linked. */
+    @Transient
+    private ReferralContactSummaryDTO referralContactSummary;
 }
