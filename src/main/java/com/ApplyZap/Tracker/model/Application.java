@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.model;
 
+import com.ApplyZap.Tracker.dto.GroupAddResultDTO;
 import com.ApplyZap.Tracker.dto.ReferralContactSummaryDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -65,4 +67,12 @@ public class Application {
     /** Populated on GET responses when a CRM contact is linked. */
     @Transient
     private ReferralContactSummaryDTO referralContactSummary;
+
+    /** Optional input on PUT/PATCH: mirror job to these collaborative groups. */
+    @Transient
+    private List<Long> groupIds;
+
+    /** Populated on PUT/PATCH response when groupIds was sent in the request. */
+    @Transient
+    private List<GroupAddResultDTO> groupResults;
 }
