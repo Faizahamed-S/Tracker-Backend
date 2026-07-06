@@ -71,7 +71,9 @@ public class boardController {
         return new ResponseEntity<>(boardService.createApplication(dto), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Update application", description = "Update all fields of an existing job application")
+    @Operation(summary = "Update application", description = "Update all fields of an existing job application. "
+            + "Optional groupIds mirrors link, company, and role to collaborative group boards; "
+            + "when groupIds is sent, response includes groupResults per group.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Application updated"),
             @ApiResponse(responseCode = "404", description = "Application not found"),
@@ -138,7 +140,9 @@ public class boardController {
         return new ResponseEntity<>(boardService.getApplicationByStatus(status, sort, referral, tailored), HttpStatus.OK);
     }
 
-    @Operation(summary = "Partially update application", description = "Update only specific fields of an application")
+    @Operation(summary = "Partially update application", description = "Update only specific fields of an application. "
+            + "Optional groupIds mirrors link, company, and role to collaborative group boards; "
+            + "when groupIds is sent, response includes groupResults per group.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Application updated"),
             @ApiResponse(responseCode = "404", description = "Application not found"),

@@ -23,7 +23,8 @@ Run before pushing to Railway / production.
 
 7. `POST /board/applications` without `groupIds` — 201, body `{ application, groupResults: [] }`.
 8. `POST /board/applications` with invalid `groupIds` — personal app still created; `groupResults` shows failure.
-9. User who never calls `/api/groups/**` — board-only flows unchanged.
+9. `PATCH /board/applications/{id}` with `groupIds` — 200, response includes `groupResults`; omitting `groupIds` leaves response unchanged (no `groupResults`).
+10. User who never calls `/api/groups/**` — board-only flows unchanged.
 
 ## Invites
 

@@ -109,7 +109,7 @@ public class boardService {
         ReferralLinkHelper.applyReferralLink(
                 application, currentUser, dto.isReferral(), dto.getReferralContactId(), referralContactRepository);
         Application saved = saveNewApplication(application);
-        List<GroupAddResultDTO> groupResults = addToGroups(dto, saved);
+        List<GroupAddResultDTO> groupResults = addToGroups(dto.getGroupIds(), saved);
         return new ApplicationCreateResponseDTO(enrichApplication(saved), groupResults);
     }
 
@@ -145,12 +145,12 @@ public class boardService {
         return saved;
     }
 
-    private List<GroupAddResultDTO> addToGroups(ApplicationCreateDTO dto, Application saved) {
-        if (dto.getGroupIds() == null || dto.getGroupIds().isEmpty()) {
+    private List<GroupAddResultDTO> addToGroups(List<Long> groupIds, Application saved) {
+        if (groupIds == null || groupIds.isEmpty()) {
             return List.of();
         }
         List<GroupAddResultDTO> results = new ArrayList<>();
-        for (Long groupId : dto.getGroupIds()) {
+        for (Long groupId : groupIds) {
             if (groupId == null) {
                 continue;
             }
@@ -183,6 +183,7 @@ public class boardService {
     public Application updateApplication(Application existing, Application newUpdate) {
         // Ensure user cannot be changed through update
         // (user is already set and verified via getApplicationById)
+        List<Long> groupIds = newUpdate.getGroupIds();
         String oldStatus = existing.getStatus();
 
         if (newUpdate.getCompanyName() != null)
@@ -222,7 +223,11 @@ public class boardService {
             log.setNewStatus(newStatus);
             activityLogRepository.save(log);
         }
-        return enrichApplication(saved);
+        Application result = enrichApplication(saved);
+        if (groupIds != null) {
+            result.setGroupResults(addToGroups(groupIds, saved));
+        }
+        return result;
     }
 
     private void applyReferralUpdate(Application existing, Application incoming) {
