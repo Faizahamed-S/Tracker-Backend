@@ -48,7 +48,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // Reduce log noise for common browser requests without auth
             String path = request.getRequestURI();
             boolean isPublicPath = path.equals("/") || path.equals("/favicon.ico") ||
-                    path.startsWith("/actuator") || path.startsWith("/api/user-sync");
+                    path.equals("/actuator/health") || path.startsWith("/actuator/health/") ||
+                    path.startsWith("/api/user-sync");
 
             if (!isPublicPath) {
                 // Only log errors for API endpoints that should have auth
@@ -213,7 +214,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Skip filter for public paths (no auth required)
         return path.equals("/")
                 || path.equals("/favicon.ico")
-                || path.startsWith("/actuator")
+                || path.equals("/actuator/health")
+                || path.startsWith("/actuator/health/")
                 || path.startsWith("/api/user-sync")
                 || path.startsWith("/api/user-sync/test")
                 || path.startsWith("/h2-console")
