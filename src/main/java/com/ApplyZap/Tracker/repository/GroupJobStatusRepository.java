@@ -20,11 +20,11 @@ public interface GroupJobStatusRepository extends JpaRepository<GroupJobStatus, 
 
     Optional<GroupJobStatus> findByGroupJobAndMember(GroupJob groupJob, GroupMember member);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GroupJobStatus s WHERE s.member = :member")
     void deleteAllByMember(@Param("member") GroupMember member);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GroupJobStatus s WHERE s.groupJob IN (SELECT j FROM GroupJob j WHERE j.group = :group)")
     void deleteAllByGroupJobGroup(@Param("group") Group group);
 }

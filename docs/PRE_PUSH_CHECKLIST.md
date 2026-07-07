@@ -25,6 +25,7 @@ Run before pushing to Railway / production.
 8. `POST /board/applications` with invalid `groupIds` — personal app still created; `groupResults` shows failure.
 9. `PATCH /board/applications/{id}` with `groupIds` — 200, response includes `groupResults`; omitting `groupIds` leaves response unchanged (no `groupResults`).
 10. User who never calls `/api/groups/**` — board-only flows unchanged.
+11. `DELETE /api/groups/{id}` as owner (group with jobs/members if possible) — HTTP 204; group absent from `GET /api/groups`.
 
 ## Invites
 

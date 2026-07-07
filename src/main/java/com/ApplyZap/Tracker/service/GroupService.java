@@ -13,6 +13,7 @@ import com.ApplyZap.Tracker.repository.GroupJobStatusRepository;
 import com.ApplyZap.Tracker.repository.GroupMemberRepository;
 import com.ApplyZap.Tracker.repository.GroupRepository;
 import com.ApplyZap.Tracker.repository.GroupInviteRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,9 @@ public class GroupService {
     private GroupInviteRepository groupInviteRepository;
     @Autowired
     private userService userService;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Transactional
     public Group createGroup(GroupCreateDTO dto) {
@@ -84,22 +88,22 @@ public class GroupService {
         User currentUser = userService.getCurrentUser();
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
-        GroupMember member = groupMemberRepository.findByGroupAndUser(group, currentUser)
-                .orElseThrow(() -> new SecurityException("Not a member of this group"));
-        if (member.getRole() != GroupRole.OWNER) {
-            throw new SecurityException("Only the owner can delete the group");
-        }
-        deleteGroupCascade(group);
+        requireOwner(group, currentUser);
+        deleteGroupCascade(groupId);
     }
 
     /** Cascade delete group and all related data. Used by deleteGroup and when owner leaves as only member. */
     @Transactional
-    public void deleteGroupCascade(Group group) {
+    public void deleteGroupCascade(Long groupId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
         groupJobStatusRepository.deleteAllByGroupJobGroup(group);
         groupJobRepository.deleteAllByGroup(group);
         groupInviteRepository.deleteAllByGroup(group);
         groupMemberRepository.deleteAllByGroup(group);
-        groupRepository.delete(group);
+        entityManager.flush();
+        entityManager.clear();
+        groupRepository.deleteById(groupId);
     }
 
     public Group getGroupEntity(Long groupId) {
