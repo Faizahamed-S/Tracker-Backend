@@ -18,8 +18,12 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        String message = ex.getMessage();
+        if (message != null && message.contains("org.hibernate")) {
+            message = "Could not complete the request. Please try again.";
+        }
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", ex.getMessage() != null ? ex.getMessage() : "Conflict"));
+                .body(Map.of("message", message != null ? message : "Conflict"));
     }
 
     @ExceptionHandler(SecurityException.class)

@@ -21,7 +21,7 @@ public interface GroupJobRepository extends JpaRepository<GroupJob, Long> {
 
     Optional<GroupJob> findByGroupAndNormalizedUrl(Group group, String normalizedUrl);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GroupJob j WHERE j.group = :group")
     void deleteAllByGroup(@Param("group") Group group);
 

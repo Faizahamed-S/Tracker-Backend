@@ -20,7 +20,7 @@ public interface GroupInviteRepository extends JpaRepository<GroupInvite, Long> 
 
     List<GroupInvite> findByGroupAndStatus(Group group, GroupInviteStatus status);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GroupInvite i WHERE i.group = :group")
     void deleteAllByGroup(@Param("group") Group group);
 

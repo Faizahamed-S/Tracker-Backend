@@ -27,7 +27,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     @Query("SELECT m FROM GroupMember m WHERE m.group = :group AND m.role = :role")
     Optional<GroupMember> findByGroupAndRole(@Param("group") Group group, @Param("role") GroupRole role);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM GroupMember m WHERE m.group = :group")
     void deleteAllByGroup(@Param("group") Group group);
 }

@@ -35,7 +35,7 @@ public class GroupMemberService {
         if (member.getRole() == GroupRole.OWNER) {
             long count = groupMemberRepository.findByGroupOrderByJoinedAtAsc(group).size();
             if (count <= 1) {
-                groupService.deleteGroupCascade(group);
+                groupService.deleteGroupCascade(group.getId());
                 return;
             }
             throw new IllegalStateException("Owner must transfer ownership or delete the group before leaving");
