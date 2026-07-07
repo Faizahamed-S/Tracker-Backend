@@ -84,6 +84,20 @@ public class GroupService {
     }
 
     @Transactional
+    public GroupSummaryDTO updateGroupName(Long groupId, GroupCreateDTO dto) {
+        User currentUser = userService.getCurrentUser();
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+        requireOwner(group, currentUser);
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        group.setName(dto.getName().trim());
+        group = groupRepository.save(group);
+        return toSummaryDTO(group);
+    }
+
+    @Transactional
     public void deleteGroup(Long groupId) {
         User currentUser = userService.getCurrentUser();
         Group group = groupRepository.findById(groupId)

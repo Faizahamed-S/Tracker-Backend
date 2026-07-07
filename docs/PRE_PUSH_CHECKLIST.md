@@ -26,6 +26,7 @@ Run before pushing to Railway / production.
 9. `PATCH /board/applications/{id}` with `groupIds` — 200, response includes `groupResults`; omitting `groupIds` leaves response unchanged (no `groupResults`).
 10. User who never calls `/api/groups/**` — board-only flows unchanged.
 11. `DELETE /api/groups/{id}` as owner (group with jobs/members if possible) — HTTP 204; group absent from `GET /api/groups`.
+12. `PATCH /api/groups/{id}` as owner with `{ "name": "Renamed" }` — HTTP 200; `GET /api/groups` shows updated name.
 
 ## Invites
 
