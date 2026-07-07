@@ -72,6 +72,20 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getGroup(groupId));
     }
 
+    @Operation(summary = "Rename group (owner only)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Group renamed"),
+            @ApiResponse(responseCode = "400", description = "Name is required"),
+            @ApiResponse(responseCode = "404", description = "Group not found or not owner"),
+            @ApiResponse(responseCode = "401", description = "Not authorized")
+    })
+    @PatchMapping("/{groupId}")
+    public ResponseEntity<GroupSummaryDTO> updateGroup(
+            @Parameter(description = "Group ID", required = true) @PathVariable Long groupId,
+            @RequestBody GroupCreateDTO dto) {
+        return ResponseEntity.ok(groupService.updateGroupName(groupId, dto));
+    }
+
     @Operation(summary = "Delete group (owner only)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Group deleted"),
