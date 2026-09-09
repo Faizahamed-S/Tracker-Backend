@@ -50,6 +50,6 @@ Run before pushing to Railway / production.
 ## Application field template
 
 20. `GET /board/field-template` — HTTP 200; `builtIn` includes `companyName`, `roleName`, `status`; `custom` is `[]` for new users.
-21. `PUT /board/field-template` with `{ "custom": [{ "key": "external_id", "label": "ID", "type": "text", "order": 0 }] }` — 200; `GET` returns same custom field; `builtIn` unchanged.
-22. `PUT /board/field-template` with custom key `status` or type `textarea` — HTTP 400 with `message`.
+21. `PUT /board/field-template` with custom fields using `text`, `boolean`, `select` (with options), `number`, or `textarea` — 200; `GET` returns same customs; `builtIn` unchanged.
+22. `PUT /board/field-template` with custom key `status` or unsupported type `url` — HTTP 400 with `message`.
 23. After PUT, other `trackerConfig` keys (e.g. `referralCustomFields`) still present if they were set before.

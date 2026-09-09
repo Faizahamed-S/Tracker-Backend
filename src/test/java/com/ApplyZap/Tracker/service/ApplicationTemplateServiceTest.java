@@ -114,10 +114,35 @@ class ApplicationTemplateServiceTest {
     void replaceFieldTemplate_rejectsInvalidType() {
         List<ApplicationFieldDefinitionDTO> custom = List.of(
                 new ApplicationFieldDefinitionDTO(
-                        "notes", "Notes", "textarea", 0, false, false, null));
+                        "website", "Website", "url", 0, false, false, null));
 
         assertThrows(IllegalArgumentException.class,
                 () -> applicationTemplateService.replaceFieldTemplate(custom));
+    }
+
+    @Test
+    void replaceFieldTemplate_acceptsNumberAndTextarea() {
+        List<ApplicationFieldDefinitionDTO> custom = List.of(
+                new ApplicationFieldDefinitionDTO(
+                        "salary", "Salary", "number", 0, false, false, null),
+                new ApplicationFieldDefinitionDTO(
+                        "notes", "Notes", "textarea", 1, false, false, null));
+
+        ApplicationFieldTemplateDTO result = applicationTemplateService.replaceFieldTemplate(custom);
+
+        assertEquals(2, result.getCustom().size());
+        assertEquals("number", result.getCustom().get(0).getType());
+        assertEquals("textarea", result.getCustom().get(1).getType());
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> stored = (List<Map<String, Object>>) userCaptor.getValue()
+                .getTrackerConfig()
+                .get(ApplicationTemplateService.APPLICATION_CUSTOM_FIELDS_KEY);
+        assertEquals(2, stored.size());
+        assertEquals("number", stored.get(0).get("type"));
+        assertEquals("textarea", stored.get(1).get("type"));
     }
 
     @Test

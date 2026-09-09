@@ -25,7 +25,8 @@ public class ApplicationTemplateService {
 
     static final String APPLICATION_CUSTOM_FIELDS_KEY = "applicationCustomFields";
 
-    private static final Set<String> ALLOWED_TYPES = Set.of("text", "boolean", "select");
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+            "text", "boolean", "select", "number", "textarea");
 
     private static final Set<String> BUILTIN_KEYS = Set.of(
             "companyName",
@@ -124,7 +125,7 @@ public class ApplicationTemplateService {
             }
             if (!ALLOWED_TYPES.contains(type)) {
                 throw new IllegalArgumentException(
-                        "Custom field type must be one of: text, boolean, select");
+                        "Custom field type must be one of: text, boolean, select, number, textarea");
             }
 
             List<String> options = null;
