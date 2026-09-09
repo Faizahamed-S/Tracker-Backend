@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
 import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
+import com.ApplyZap.Tracker.dto.ApplicationFieldDefinitionDTO;
+import com.ApplyZap.Tracker.dto.ApplicationFieldTemplateDTO;
+import com.ApplyZap.Tracker.service.ApplicationTemplateService;
 import com.ApplyZap.Tracker.service.boardService;
 import com.ApplyZap.Tracker.model.Application;
 import java.util.*;
@@ -24,6 +27,36 @@ public class boardController {
 
     @Autowired
     boardService boardService;
+
+    @Autowired
+    ApplicationTemplateService applicationTemplateService;
+
+    @Operation(summary = "Get application field template",
+            description = "Returns server-defined built-in fields plus the user's custom fields. "
+                    + "Lovable and the Chrome extension should fetch this before rendering the add-job form.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Template returned"),
+            @ApiResponse(responseCode = "401", description = "Not authorized")
+    })
+    @GetMapping("/field-template")
+    public ResponseEntity<ApplicationFieldTemplateDTO> getFieldTemplate() {
+        return ResponseEntity.ok(applicationTemplateService.getFieldTemplate());
+    }
+
+    @Operation(summary = "Replace application custom field template",
+            description = "Replaces only custom fields in trackerConfig.applicationCustomFields. "
+                    + "Built-ins are always server-defined and ignored from the request body.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Template updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid custom fields"),
+            @ApiResponse(responseCode = "401", description = "Not authorized")
+    })
+    @PutMapping("/field-template")
+    public ResponseEntity<ApplicationFieldTemplateDTO> replaceFieldTemplate(
+            @RequestBody ApplicationFieldTemplateDTO dto) {
+        List<ApplicationFieldDefinitionDTO> custom = dto != null ? dto.getCustom() : null;
+        return ResponseEntity.ok(applicationTemplateService.replaceFieldTemplate(custom));
+    }
 
     @Operation(summary = "Get all applications", description = "Get all job applications for the current user")
     @ApiResponses(value = {

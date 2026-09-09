@@ -46,3 +46,10 @@ Run before pushing to Railway / production.
 17. `PATCH /board/applications/{id}` with `referral: false` — `referralContactId` cleared on GET list.
 18. `DELETE /api/referrals/{id}` — linked apps have `referral=false` and no `referralContactId`.
 19. Legacy app with `referral=true` only (no contact) — still returned by `GET /board/applications?referral=true`; `referral_count` unchanged on dashboard.
+
+## Application field template
+
+20. `GET /board/field-template` — HTTP 200; `builtIn` includes `companyName`, `roleName`, `status`; `custom` is `[]` for new users.
+21. `PUT /board/field-template` with `{ "custom": [{ "key": "external_id", "label": "ID", "type": "text", "order": 0 }] }` — 200; `GET` returns same custom field; `builtIn` unchanged.
+22. `PUT /board/field-template` with custom key `status` or type `textarea` — HTTP 400 with `message`.
+23. After PUT, other `trackerConfig` keys (e.g. `referralCustomFields`) still present if they were set before.
