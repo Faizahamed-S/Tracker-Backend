@@ -5,6 +5,7 @@ import com.ApplyZap.Tracker.dto.ApplicationFieldTemplateDTO;
 import com.ApplyZap.Tracker.model.ApplicationStatus;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.userRepository;
+import com.ApplyZap.Tracker.util.StatusNormalizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,7 +48,8 @@ public class ApplicationTemplateService {
 
     public ApplicationFieldTemplateDTO getFieldTemplate() {
         User user = userService.getCurrentUser();
-        return buildTemplate(readCustomFields(user.getTrackerConfig()));
+        Map<String, Object> config = user.getTrackerConfig();
+        return buildTemplate(config, readCustomFields(config));
     }
 
     @Transactional
@@ -63,17 +66,17 @@ public class ApplicationTemplateService {
         user.setTrackerConfig(merged);
         userRepository.save(user);
 
-        return buildTemplate(readCustomFields(merged));
+        return buildTemplate(merged, readCustomFields(merged));
     }
 
-    private ApplicationFieldTemplateDTO buildTemplate(List<ApplicationFieldDefinitionDTO> custom) {
-        return new ApplicationFieldTemplateDTO(defaultBuiltIns(), custom);
+    private ApplicationFieldTemplateDTO buildTemplate(
+            Map<String, Object> trackerConfig,
+            List<ApplicationFieldDefinitionDTO> custom) {
+        return new ApplicationFieldTemplateDTO(defaultBuiltIns(trackerConfig), custom);
     }
 
-    private List<ApplicationFieldDefinitionDTO> defaultBuiltIns() {
-        List<String> statusOptions = Arrays.stream(ApplicationStatus.values())
-                .map(Enum::name)
-                .collect(Collectors.toList());
+    private List<ApplicationFieldDefinitionDTO> defaultBuiltIns(Map<String, Object> trackerConfig) {
+        List<String> statusOptions = resolveStatusOptions(trackerConfig);
 
         List<ApplicationFieldDefinitionDTO> builtIn = new ArrayList<>();
         builtIn.add(field("companyName", "Company", "text", 0, true, true, null));
@@ -85,6 +88,63 @@ public class ApplicationTemplateService {
         builtIn.add(field("referral", "Referral", "boolean", 6, false, true, null));
         builtIn.add(field("jobDescription", "Job Description", "textarea", 7, false, true, null));
         return builtIn;
+    }
+
+    /**
+     * Status dropdown options for the application form.
+     * Prefer the user's board columns in trackerConfig (same source the web Kanban uses).
+     * Values are normalized to match what create/update persist via StatusNormalizer
+     * (e.g. "Phone Screen" → "PHONE_SCREEN").
+     * Falls back to ApplicationStatus enum names when columns are missing/empty.
+     */
+    List<String> resolveStatusOptions(Map<String, Object> trackerConfig) {
+        List<String> fromColumns = readColumnStatusOptions(trackerConfig);
+        if (!fromColumns.isEmpty()) {
+            return fromColumns;
+        }
+        return Arrays.stream(ApplicationStatus.values())
+                .map(Enum::name)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> readColumnStatusOptions(Map<String, Object> trackerConfig) {
+        if (trackerConfig == null || !trackerConfig.containsKey("columns")) {
+            return List.of();
+        }
+        Object raw = trackerConfig.get("columns");
+        if (!(raw instanceof List<?> list) || list.isEmpty()) {
+            return List.of();
+        }
+
+        Set<String> options = new LinkedHashSet<>();
+        for (Object item : list) {
+            String title = null;
+            if (item instanceof Map<?, ?> map) {
+                title = firstNonBlank(
+                        stringValue(map.get("title")),
+                        stringValue(map.get("name")),
+                        stringValue(map.get("label")));
+            } else if (item instanceof String s) {
+                title = s;
+            }
+            String normalized = StatusNormalizer.normalize(title);
+            if (normalized != null) {
+                options.add(normalized);
+            }
+        }
+        return new ArrayList<>(options);
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private ApplicationFieldDefinitionDTO field(

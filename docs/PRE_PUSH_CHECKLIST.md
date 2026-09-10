@@ -49,7 +49,8 @@ Run before pushing to Railway / production.
 
 ## Application field template
 
-20. `GET /board/field-template` — HTTP 200; `builtIn` includes `companyName`, `roleName`, `status`; `custom` is `[]` for new users.
-21. `PUT /board/field-template` with custom fields using `text`, `boolean`, `select` (with options), `number`, or `textarea` — 200; `GET` returns same customs; `builtIn` unchanged.
+20. `GET /board/field-template` — HTTP 200; `builtIn` includes `companyName`, `roleName`, `status`; `custom` is `[]` for new users. If user has `trackerConfig.columns`, `status.options` are those column titles normalized (e.g. "Phone Screen" → `PHONE_SCREEN`); otherwise enum defaults.
+21. `PUT /board/field-template` with custom fields using `text`, `boolean`, `select` (with options), `number`, or `textarea` — 200; `GET` returns same customs; `builtIn` unchanged (status options still from columns).
 22. `PUT /board/field-template` with custom key `status` or unsupported type `url` — HTTP 400 with `message`.
-23. After PUT, other `trackerConfig` keys (e.g. `referralCustomFields`) still present if they were set before.
+23. After PUT, other `trackerConfig` keys (e.g. `referralCustomFields`, `columns`) still present if they were set before.
+24. Add a board column via profile `trackerConfig.columns`, then `GET /board/field-template` — new status appears in `status.options` (normalized).
