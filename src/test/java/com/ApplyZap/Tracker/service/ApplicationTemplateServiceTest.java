@@ -55,6 +55,30 @@ class ApplicationTemplateServiceTest {
         assertTrue(template.getCustom().isEmpty());
         assertTrue(template.getBuiltIn().stream().anyMatch(f -> "status".equals(f.getKey())));
         assertTrue(template.getBuiltIn().stream().allMatch(ApplicationFieldDefinitionDTO::isLocked));
+
+        ApplicationFieldDefinitionDTO status = template.getBuiltIn().stream()
+                .filter(f -> "status".equals(f.getKey()))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(status.getOptions().contains("APPLIED"));
+        assertTrue(status.getOptions().contains("INTERVIEW"));
+    }
+
+    @Test
+    void getFieldTemplate_usesNormalizedColumnTitlesForStatusOptions() {
+        user.setTrackerConfig(Map.of(
+                "columns", List.of(
+                        Map.of("id", "col_wishlist", "title", "Wishlist", "color", "gray"),
+                        Map.of("id", "col_phone", "title", "Phone Screen", "color", "blue"),
+                        Map.of("id", "col_applied", "title", "Applied", "color", "blue"))));
+
+        ApplicationFieldTemplateDTO template = applicationTemplateService.getFieldTemplate();
+
+        ApplicationFieldDefinitionDTO status = template.getBuiltIn().stream()
+                .filter(f -> "status".equals(f.getKey()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(List.of("WISHLIST", "PHONE_SCREEN", "APPLIED"), status.getOptions());
     }
 
     @Test
