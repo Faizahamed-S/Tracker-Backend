@@ -60,4 +60,4 @@ Run before pushing to Railway / production.
 25. `GET /board/applications` — each application includes `userJobId` (integer) after backfill / for new creates.
 26. `POST /board/applications` — response `application.userJobId` is next number for that user (1 on first app); global `id` still present for update/delete paths.
 27. `PATCH /board/applications/{id}` with `"userJobId": 999` — persisted `userJobId` unchanged.
-28. One-time: set `applyzap.backfill.user-job-ids=true` for one deploy — legacy apps get non-null `userJobId` ordered by `createdAt`; then set flag back to `false`.
+28. One-time backfill: `applyzap.backfill.user-job-ids` is set `true` in prod/staging for the next deploy. After deploy: confirm log `Application userJobId backfill completed` and Swagger shows `userJobId` on legacy apps, then **immediately set the flag back to `false`**, commit, and redeploy.
