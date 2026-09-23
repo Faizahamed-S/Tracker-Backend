@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(
+        name = "uk_application_user_job_id",
+        columnNames = { "user_id", "user_job_id" }))
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -33,6 +36,13 @@ public class Application {
     private String jobDescription;
     private boolean referral;
     private String status;
+
+    /**
+     * Per-user sequential job number (1, 2, 3…). Server-assigned; not the global PK.
+     * Stable across deletes (gaps allowed). Used by tooling/Claude as a user-scoped ref.
+     */
+    @Column(name = "user_job_id")
+    private Integer userJobId;
 
     /** When the application was first saved to the tracker (server-side). */
     @Column(name = "created_at")

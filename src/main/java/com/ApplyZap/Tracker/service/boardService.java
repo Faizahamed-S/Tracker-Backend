@@ -130,6 +130,7 @@ public class boardService {
     private Application saveNewApplication(Application application) {
         User currentUser = userService.getCurrentUser();
         application.setUser(currentUser);
+        application.setUserJobId(nextUserJobId(currentUser));
         application.setStatus(StatusNormalizer.normalize(application.getStatus()));
         LocalDateTime now = LocalDateTime.now();
         application.setCreatedAt(now);
@@ -143,6 +144,12 @@ public class boardService {
         log.setNewStatus(saved.getStatus());
         activityLogRepository.save(log);
         return saved;
+    }
+
+    /** Next per-user job number: max existing + 1 (starts at 1). */
+    private int nextUserJobId(User user) {
+        Integer max = repo.findMaxUserJobIdByUser(user);
+        return (max != null ? max : 0) + 1;
     }
 
     private List<GroupAddResultDTO> addToGroups(List<Long> groupIds, Application saved) {
@@ -183,6 +190,7 @@ public class boardService {
     public Application updateApplication(Application existing, Application newUpdate) {
         // Ensure user cannot be changed through update
         // (user is already set and verified via getApplicationById)
+        // userJobId is server-owned — never copy from client payload
         List<Long> groupIds = newUpdate.getGroupIds();
         String oldStatus = existing.getStatus();
 

@@ -48,6 +48,14 @@ public interface boardRepository extends JpaRepository<Application, Long> {
     @Query("SELECT a FROM Application a WHERE a.createdAt IS NULL OR a.statusUpdatedAt IS NULL")
     List<Application> findNeedingTimestampBackfill();
 
+    @Query("SELECT MAX(a.userJobId) FROM Application a WHERE a.user = :user")
+    Integer findMaxUserJobIdByUser(@Param("user") User user);
+
+    @Query("SELECT DISTINCT a.user FROM Application a WHERE a.userJobId IS NULL")
+    List<User> findUsersNeedingUserJobIdBackfill();
+
+    List<Application> findByUserAndUserJobIdIsNullOrderByCreatedAtAscIdAsc(User user);
+
     // Find application by ID and user (ensures ownership)
     @EntityGraph(attributePaths = "referralContact")
     Optional<Application> findByIdAndUser(Long id, User user);
