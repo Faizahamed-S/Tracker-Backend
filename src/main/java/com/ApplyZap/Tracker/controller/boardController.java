@@ -148,7 +148,7 @@ public class boardController {
         }
     }
 
-    @Operation(summary = "Get all statuses", description = "Get list of all unique application statuses")
+    @Operation(summary = "Get all statuses", description = "Board column statuses (in board order, even with zero jobs), followed by any statuses still used by applications but not on the board. Values are normalized (e.g. PHONE_SCREEN).")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success"),
             @ApiResponse(responseCode = "401", description = "Not authorized")

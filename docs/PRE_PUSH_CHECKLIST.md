@@ -54,6 +54,7 @@ Run before pushing to Railway / production.
 22. `PUT /board/field-template` with custom key `status` or unsupported type `url` — HTTP 400 with `message`.
 23. After PUT, other `trackerConfig` keys (e.g. `referralCustomFields`, `columns`) still present if they were set before.
 24. Add a board column via profile `trackerConfig.columns`, then `GET /board/field-template` — new status appears in `status.options` (normalized).
+24b. `GET /board/applications/statuses` returns all board column statuses (even with zero jobs), in board order, followed by any in-use statuses not on the board (sorted, normalized, no duplicates).
 24a. Board Settings save must not wipe field templates: `PUT /api/user/profile` with only `{ "trackerConfig": { "columns": [...] } }` — `applicationCustomFields` and `referralCustomFields` still returned by their `GET .../field-template` endpoints (trackerConfig is merged by top-level key).
 
 ## Per-user job IDs (`userJobId`)

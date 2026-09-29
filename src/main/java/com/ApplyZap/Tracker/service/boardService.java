@@ -17,6 +17,7 @@ import com.ApplyZap.Tracker.repository.boardRepository;
 import com.ApplyZap.Tracker.util.ApplicationListSort;
 import com.ApplyZap.Tracker.util.ReferralLinkHelper;
 import com.ApplyZap.Tracker.util.StatusNormalizer;
+import com.ApplyZap.Tracker.util.TrackerColumnStatuses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -318,18 +319,21 @@ public class boardService {
     }
 
     /**
-     * Get all unique statuses used by the currently authenticated user.
-     * Returns a list of distinct status strings (excluding null values).
-     * Useful for populating dynamic board columns or status filters.
+     * Get all statuses for the currently authenticated user (normalized, distinct):
+     * board column statuses first (trackerConfig.columns, in board order), then
+     * statuses still used by applications but not on the board, sorted.
      */
     public List<String> getUniqueStatuses() {
         User currentUser = userService.getCurrentUser();
-        List<String> raw = repo.findDistinctStatusesByUser(currentUser);
-        return raw.stream()
+        Set<String> result = new LinkedHashSet<>(
+                TrackerColumnStatuses.fromTrackerConfig(currentUser.getTrackerConfig()));
+        repo.findDistinctStatusesByUser(currentUser).stream()
                 .map(StatusNormalizer::normalize)
                 .filter(Objects::nonNull)
+                .filter(s -> !result.contains(s))
                 .distinct()
                 .sorted()
-                .toList();
+                .forEach(result::add);
+        return new ArrayList<>(result);
     }
 }
