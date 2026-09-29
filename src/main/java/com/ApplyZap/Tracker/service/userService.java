@@ -92,6 +92,9 @@ public class userService {
     /**
      * Update user profile by supabase user ID. Partial update: only non-null DTO
      * fields are applied. profileData overwrites the existing map when non-null.
+     * trackerConfig is merged by top-level key: sent keys (e.g. columns) replace
+     * stored values; keys not sent (e.g. applicationCustomFields,
+     * referralCustomFields) are preserved.
      *
      * @param supabaseUserId UUID from Supabase JWT token
      * @param dto             profile fields to update
@@ -110,8 +113,13 @@ public class userService {
             user.setTimezone(dto.getTimezone());
         if (dto.getProfileData() != null)
             user.setProfileData(dto.getProfileData());
-        if (dto.getTrackerConfig() != null)
-            user.setTrackerConfig(dto.getTrackerConfig());
+        if (dto.getTrackerConfig() != null) {
+            Map<String, Object> merged = user.getTrackerConfig() != null
+                    ? new HashMap<>(user.getTrackerConfig())
+                    : new HashMap<>();
+            merged.putAll(dto.getTrackerConfig());
+            user.setTrackerConfig(merged);
+        }
         return userRepository.save(user);
     }
 }

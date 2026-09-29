@@ -54,10 +54,11 @@ Run before pushing to Railway / production.
 22. `PUT /board/field-template` with custom key `status` or unsupported type `url` — HTTP 400 with `message`.
 23. After PUT, other `trackerConfig` keys (e.g. `referralCustomFields`, `columns`) still present if they were set before.
 24. Add a board column via profile `trackerConfig.columns`, then `GET /board/field-template` — new status appears in `status.options` (normalized).
+24a. Board Settings save must not wipe field templates: `PUT /api/user/profile` with only `{ "trackerConfig": { "columns": [...] } }` — `applicationCustomFields` and `referralCustomFields` still returned by their `GET .../field-template` endpoints (trackerConfig is merged by top-level key).
 
 ## Per-user job IDs (`userJobId`)
 
 25. `GET /board/applications` — each application includes `userJobId` (integer) after backfill / for new creates.
 26. `POST /board/applications` — response `application.userJobId` is next number for that user (1 on first app); global `id` still present for update/delete paths.
 27. `PATCH /board/applications/{id}` with `"userJobId": 999` — persisted `userJobId` unchanged.
-28. One-time backfill: `applyzap.backfill.user-job-ids` is set `true` in prod/staging for the next deploy. After deploy: confirm log `Application userJobId backfill completed` and Swagger shows `userJobId` on legacy apps, then **immediately set the flag back to `false`**, commit, and redeploy.
+28. One-time backfill: `applyzap.backfill.user-job-ids` must be `false` in prod/staging (backfill already completed). Only re-enable for one deploy if legacy apps are missing `userJobId`.
