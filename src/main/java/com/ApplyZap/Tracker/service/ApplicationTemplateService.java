@@ -5,7 +5,7 @@ import com.ApplyZap.Tracker.dto.ApplicationFieldTemplateDTO;
 import com.ApplyZap.Tracker.model.ApplicationStatus;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.userRepository;
-import com.ApplyZap.Tracker.util.StatusNormalizer;
+import com.ApplyZap.Tracker.util.TrackerColumnStatuses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -98,53 +97,13 @@ public class ApplicationTemplateService {
      * Falls back to ApplicationStatus enum names when columns are missing/empty.
      */
     List<String> resolveStatusOptions(Map<String, Object> trackerConfig) {
-        List<String> fromColumns = readColumnStatusOptions(trackerConfig);
+        List<String> fromColumns = TrackerColumnStatuses.fromTrackerConfig(trackerConfig);
         if (!fromColumns.isEmpty()) {
             return fromColumns;
         }
         return Arrays.stream(ApplicationStatus.values())
                 .map(Enum::name)
                 .collect(Collectors.toList());
-    }
-
-    private List<String> readColumnStatusOptions(Map<String, Object> trackerConfig) {
-        if (trackerConfig == null || !trackerConfig.containsKey("columns")) {
-            return List.of();
-        }
-        Object raw = trackerConfig.get("columns");
-        if (!(raw instanceof List<?> list) || list.isEmpty()) {
-            return List.of();
-        }
-
-        Set<String> options = new LinkedHashSet<>();
-        for (Object item : list) {
-            String title = null;
-            if (item instanceof Map<?, ?> map) {
-                title = firstNonBlank(
-                        stringValue(map.get("title")),
-                        stringValue(map.get("name")),
-                        stringValue(map.get("label")));
-            } else if (item instanceof String s) {
-                title = s;
-            }
-            String normalized = StatusNormalizer.normalize(title);
-            if (normalized != null) {
-                options.add(normalized);
-            }
-        }
-        return new ArrayList<>(options);
-    }
-
-    private String firstNonBlank(String... values) {
-        if (values == null) {
-            return null;
-        }
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return null;
     }
 
     private ApplicationFieldDefinitionDTO field(
