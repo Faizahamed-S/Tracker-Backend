@@ -13,6 +13,7 @@ import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
 import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
 import com.ApplyZap.Tracker.dto.ApplicationFieldDefinitionDTO;
 import com.ApplyZap.Tracker.dto.ApplicationFieldTemplateDTO;
+import com.ApplyZap.Tracker.dto.ApplicationUpdateDTO;
 import com.ApplyZap.Tracker.service.ApplicationTemplateService;
 import com.ApplyZap.Tracker.service.boardService;
 import com.ApplyZap.Tracker.model.Application;
@@ -116,7 +117,7 @@ public class boardController {
     public ResponseEntity<Application> updateApplication(
             @Parameter(description = "Application ID", required = true, example = "1")
             @PathVariable Long id, 
-            @RequestBody Application application) {
+            @RequestBody ApplicationUpdateDTO application) {
         Optional<Application> existing = boardService.getApplicationById(id);
         if (existing.isPresent()) {
             Application updated = boardService.updateApplication(existing.get(), application);
@@ -185,7 +186,7 @@ public class boardController {
     public ResponseEntity<Application> patchApplication(
             @Parameter(description = "Application ID", required = true, example = "1")
             @PathVariable Long id, 
-            @RequestBody Application partialUpdate) {
+            @RequestBody ApplicationUpdateDTO partialUpdate) {
         Optional<Application> existing = boardService.getApplicationById(id);
         if (existing.isPresent()) {
             Application updated = boardService.updateApplication(existing.get(), partialUpdate);

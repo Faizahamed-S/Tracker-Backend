@@ -2,6 +2,7 @@ package com.ApplyZap.Tracker.service;
 
 import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
 import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
+import com.ApplyZap.Tracker.dto.ApplicationUpdateDTO;
 import com.ApplyZap.Tracker.model.Application;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.ApplicationActivityLogRepository;
@@ -97,9 +98,8 @@ class boardServiceUserJobIdTest {
         existing.setCompanyName("Acme");
         existing.setStatus("APPLIED");
 
-        Application incoming = new Application();
+        ApplicationUpdateDTO incoming = new ApplicationUpdateDTO();
         incoming.setCompanyName("Acme Updated");
-        incoming.setUserJobId(999);
 
         when(repo.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
 

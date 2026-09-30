@@ -62,4 +62,5 @@ Run before pushing to Railway / production.
 25. `GET /board/applications` — each application includes `userJobId` (integer) after backfill / for new creates.
 26. `POST /board/applications` — response `application.userJobId` is next number for that user (1 on first app); global `id` still present for update/delete paths.
 27. `PATCH /board/applications/{id}` with `"userJobId": 999` — persisted `userJobId` unchanged.
+27a. Partial PATCH: `PATCH /board/applications/{id}` with only `{status}` or `{tailored}` on a referral job keeps `referral` and the linked contact; `{"referral": false}` clears it; `{"tailored": false}` clears tailored; full-body PUT behaves as before.
 28. One-time backfill: `applyzap.backfill.user-job-ids` must be `false` in prod/staging (backfill already completed). Only re-enable for one deploy if legacy apps are missing `userJobId`.
