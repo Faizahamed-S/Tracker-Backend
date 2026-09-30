@@ -2,6 +2,7 @@ package com.ApplyZap.Tracker.service;
 
 import com.ApplyZap.Tracker.dto.ApplicationCreateDTO;
 import com.ApplyZap.Tracker.dto.ApplicationCreateResponseDTO;
+import com.ApplyZap.Tracker.dto.ApplicationUpdateDTO;
 import com.ApplyZap.Tracker.dto.GroupAddResultDTO;
 import com.ApplyZap.Tracker.dto.GroupJobCreateDTO;
 import com.ApplyZap.Tracker.dto.ReferralContactSummaryDTO;
@@ -187,8 +188,9 @@ public class boardService {
      * Update an application. The existing application must belong to the current
      * user.
      * Ownership is verified by getApplicationById() before calling this method.
+     * Partial update: null DTO fields are left unchanged.
      */
-    public Application updateApplication(Application existing, Application newUpdate) {
+    public Application updateApplication(Application existing, ApplicationUpdateDTO newUpdate) {
         // Ensure user cannot be changed through update
         // (user is already set and verified via getApplicationById)
         // userJobId is server-owned — never copy from client payload
@@ -210,8 +212,8 @@ public class boardService {
         if (newUpdate.getJobDescription() != null)
             existing.setJobDescription(newUpdate.getJobDescription());
         applyReferralUpdate(existing, newUpdate);
-        if (newUpdate.isTailored())
-            existing.setTailored(true);
+        if (newUpdate.getTailored() != null)
+            existing.setTailored(newUpdate.getTailored());
         if (newUpdate.getStatus() != null)
             existing.setStatus(StatusNormalizer.normalize(newUpdate.getStatus()));
         if (newUpdate.getApplicationMetadata() != null)
@@ -239,15 +241,17 @@ public class boardService {
         return result;
     }
 
-    private void applyReferralUpdate(Application existing, Application incoming) {
-        User currentUser = userService.getCurrentUser();
+    private void applyReferralUpdate(Application existing, ApplicationUpdateDTO incoming) {
         Long contactId = incoming.getReferralContactId();
         if (contactId != null) {
             ReferralLinkHelper.applyReferralLink(
-                    existing, currentUser, true, contactId, referralContactRepository);
+                    existing, userService.getCurrentUser(), true, contactId, referralContactRepository);
             return;
         }
-        if (!incoming.isReferral()) {
+        if (incoming.getReferral() == null) {
+            return;
+        }
+        if (!incoming.getReferral()) {
             existing.setReferral(false);
             existing.setReferralContact(null);
             return;

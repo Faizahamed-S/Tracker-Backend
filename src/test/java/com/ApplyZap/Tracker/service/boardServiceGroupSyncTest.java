@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.service;
 
+import com.ApplyZap.Tracker.dto.ApplicationUpdateDTO;
 import com.ApplyZap.Tracker.dto.GroupAddResultDTO;
 import com.ApplyZap.Tracker.dto.GroupJobCreateDTO;
 import com.ApplyZap.Tracker.model.Application;
@@ -67,7 +68,7 @@ class boardServiceGroupSyncTest {
 
     @Test
     void update_withGroupIds_callsCreateJobAndReturnsGroupResults() {
-        Application incoming = new Application();
+        ApplicationUpdateDTO incoming = new ApplicationUpdateDTO();
         incoming.setGroupIds(List.of(1L));
 
         when(repo.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -86,7 +87,7 @@ class boardServiceGroupSyncTest {
 
     @Test
     void update_withoutGroupIds_doesNotCallCreateJob() {
-        Application incoming = new Application();
+        ApplicationUpdateDTO incoming = new ApplicationUpdateDTO();
         incoming.setCompanyName("NewCo");
 
         when(repo.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -100,7 +101,7 @@ class boardServiceGroupSyncTest {
     @Test
     void update_withGroupIdsAndBlankJobLink_returnsFailureInGroupResults() {
         existing.setJobLink("  ");
-        Application incoming = new Application();
+        ApplicationUpdateDTO incoming = new ApplicationUpdateDTO();
         incoming.setGroupIds(List.of(2L));
 
         when(repo.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -115,7 +116,7 @@ class boardServiceGroupSyncTest {
 
     @Test
     void update_onlyGroupIds_usesExistingJobMetadata() {
-        Application incoming = new Application();
+        ApplicationUpdateDTO incoming = new ApplicationUpdateDTO();
         incoming.setGroupIds(List.of(3L));
 
         when(repo.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -136,7 +137,7 @@ class boardServiceGroupSyncTest {
 
     @Test
     void update_withEmptyGroupIds_returnsEmptyGroupResults() {
-        Application incoming = new Application();
+        ApplicationUpdateDTO incoming = new ApplicationUpdateDTO();
         incoming.setGroupIds(List.of());
 
         when(repo.save(any(Application.class))).thenAnswer(inv -> inv.getArgument(0));
