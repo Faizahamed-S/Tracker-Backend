@@ -64,3 +64,11 @@ Run before pushing to Railway / production.
 27. `PATCH /board/applications/{id}` with `"userJobId": 999` — persisted `userJobId` unchanged.
 27a. Partial PATCH: `PATCH /board/applications/{id}` with only `{status}` or `{tailored}` on a referral job keeps `referral` and the linked contact; `{"referral": false}` clears it; `{"tailored": false}` clears tailored; full-body PUT behaves as before.
 28. One-time backfill: `applyzap.backfill.user-job-ids` must be `false` in prod/staging (backfill already completed). Only re-enable for one deploy if legacy apps are missing `userJobId`.
+
+## Profile v2 (`profileData`)
+
+29. Web profile page save (no `schemaVersion`) still works with free-text experience dates like "Jan 2023"; v2 keys written by other clients (e.g. `story`, `contact`) survive the save.
+30. `PUT /api/user/profile` with `profileData: { "story": null }` removes `story`; absent keys are kept; unknown keys are kept.
+31. `PUT` with `profileData.schemaVersion: 2` and `experiences[1].startDate: "Jan 2023"` — HTTP 400 `{ message, field: "experiences[1].startDate" }`. `schemaVersion` is never stored by the server.
+32. After any save, every experience/project/education/highlight has an `id` (`exp_`, `proj_`, `edu_`, `h_` + 8 hex); re-saving with the same ids keeps them. Duplicate ids: 400 on v2, reassigned on v1.
+33. `GET /api/user/profile/readiness` — `resumeReady`/`formsReady` booleans and `missing.resume` / `missing.forms` paths; free-text dates appear as `"<path> (format)"` and block resume-ready.

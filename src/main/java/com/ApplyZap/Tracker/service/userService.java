@@ -3,6 +3,9 @@ package com.ApplyZap.Tracker.service;
 import com.ApplyZap.Tracker.dto.UserProfileUpdateDTO;
 import com.ApplyZap.Tracker.model.User;
 import com.ApplyZap.Tracker.repository.userRepository;
+import com.ApplyZap.Tracker.util.ProfileDataMerger;
+import com.ApplyZap.Tracker.util.ProfileDataValidator;
+import com.ApplyZap.Tracker.util.ProfileIdAssigner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,6 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 
 @Service
@@ -91,7 +95,12 @@ public class userService {
 
     /**
      * Update user profile by supabase user ID. Partial update: only non-null DTO
-     * fields are applied. profileData overwrites the existing map when non-null.
+     * fields are applied.
+     * profileData is merged by top-level key: a key with a value replaces the
+     * stored value, a key with null removes it, absent/unknown keys are kept.
+     * profileData.schemaVersion is a request-only flag (2 = strict v2 validation)
+     * and is stripped before merging, so it is never stored by this method.
+     * Missing ids on experiences/projects/education/highlights are assigned.
      * trackerConfig is merged by top-level key: sent keys (e.g. columns) replace
      * stored values; keys not sent (e.g. applicationCustomFields,
      * referralCustomFields) are preserved.
@@ -111,8 +120,17 @@ public class userService {
             user.setLastName(dto.getLastName());
         if (dto.getTimezone() != null)
             user.setTimezone(dto.getTimezone());
-        if (dto.getProfileData() != null)
-            user.setProfileData(dto.getProfileData());
+        if (dto.getProfileData() != null) {
+            Map<String, Object> incoming = new LinkedHashMap<>(dto.getProfileData());
+            boolean strict = ProfileDataValidator.isStrictV2(
+                    incoming.remove(ProfileDataValidator.SCHEMA_VERSION_KEY));
+            if (strict) {
+                ProfileDataValidator.validateV2(incoming);
+            }
+            Map<String, Object> merged = ProfileDataMerger.merge(user.getProfileData(), incoming);
+            ProfileIdAssigner.assignIds(merged, strict);
+            user.setProfileData(merged);
+        }
         if (dto.getTrackerConfig() != null) {
             Map<String, Object> merged = user.getTrackerConfig() != null
                     ? new HashMap<>(user.getTrackerConfig())
