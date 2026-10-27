@@ -1,5 +1,6 @@
 package com.ApplyZap.Tracker.controller;
 
+import com.ApplyZap.Tracker.exception.ProfileValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,8 +8,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 
-@RestControllerAdvice(assignableTypes = { boardController.class, GroupController.class, ReferralController.class })
+@RestControllerAdvice(assignableTypes = { boardController.class, GroupController.class, ReferralController.class,
+        UserController.class })
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(ProfileValidationException.class)
+    public ResponseEntity<Map<String, String>> handleProfileValidation(ProfileValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage(), "field", ex.getField()));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
